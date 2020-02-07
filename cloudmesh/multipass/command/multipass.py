@@ -166,3 +166,4 @@ class MultipassCommand(PluginCommand):
         else:
             Console.error("Not yet implemented")
         return ""
+

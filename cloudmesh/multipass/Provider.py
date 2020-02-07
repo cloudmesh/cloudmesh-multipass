@@ -1,4 +1,5 @@
 import os
+
 from cloudmesh.common.util import banner
 from cloudmesh.common.Shell import Shell
 from cloudmesh.common.console import Console
@@ -16,10 +17,17 @@ class Provider(ComputeNodeABC):
         "vm": {
             "sort_keys": ["cm.name"],
             "order": ["cm.name",
-                      "cm.cloud"],
+                      "cm.cloud",
+                      "ipv4",
+                      "name",
+                      "release",
+                      "state"],
             "header": ["Name",
                        "Cloud",
-                       ],
+                       "Address",
+                       "Name",
+                       "Release",
+                       "State"],
         },
         "image": {
             "sort_keys": ["cm.name"],
@@ -147,7 +155,7 @@ class Provider(ComputeNodeABC):
 
     def image(self, name=None):
         """
-        Gets the image with a given nmae
+        Gets the image with a given name
 
         :param name: The name of the image
         :return: the dict of the image
@@ -155,6 +163,25 @@ class Provider(ComputeNodeABC):
         result = self._images()
         result = [result[name]]
         return self.update_dict(result, kind="image")
+
+    def _vm(self):
+        result = Shell.run("multipass list --format=json")
+        result = eval(result)['list']
+        result_new_dict = {}
+        for i in range(len(result)):
+            result_new_dict[result[i]["name"]] = result[i]
+
+        return result_new_dict
+
+    def vm(self, **kwargs):
+        """
+        Lists the vms on the cloud
+
+        :return: dict
+        """
+        result = self._vm()
+        return self.update_dict(result, kind="vm")
+
 
     # IMPLEMENT
     def start(self, name=None):
@@ -164,7 +191,6 @@ class Provider(ComputeNodeABC):
         :param name: the unique node name
         :return:  The dict representing the node
         """
-
         banner(f"start {name}")
         os.system(f"multipass start {name}")
         print('\n')
@@ -540,11 +566,12 @@ class Provider(ComputeNodeABC):
 
 if __name__ == "__main__":
     # excellent-titmouse is multipass instance name
-    p = Provider(name="cloudmesh")
-    p.list()
+    p = Provider() #name="cloudmesh"
+    p.vm()
     p.start()
     p.list()
     p.run("uname -r")
     p.images()
     p.delete()
     p.list()
+
