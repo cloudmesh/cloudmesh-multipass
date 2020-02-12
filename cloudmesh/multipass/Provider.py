@@ -257,9 +257,15 @@ class Provider(ComputeNodeABC):
 
     # IMPLEMENT
     def shell(self, name="cloudmesh"):
-        banner("shell")
+        """
+        log into the shell of instance
+
+        :return: an empty string
+        """
+
         os.system(f"multipass shell {name}")
-        print('\n')
+        result = ""
+        return result
 
     # IMPLEMENT
     def run(self, name="cloudmesh", command=None, executor="buffer"):
