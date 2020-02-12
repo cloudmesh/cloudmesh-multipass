@@ -4,6 +4,7 @@ from cloudmesh.common.util import banner
 from cloudmesh.common.Shell import Shell
 from cloudmesh.common.console import Console
 import sys
+import json
 from pprint import pprint
 from cloudmesh.common.DateTime import DateTime
 from cloudmesh.common.Printer import Printer
@@ -46,7 +47,7 @@ class Provider(ComputeNodeABC):
         },
     }
 
-    def __init__(self, cloud="multipass"):
+    def __init__(self, name="cloudmesh", cloud="multipass"):
         """
 
         :param cloud: The name of the cloud, by default multipass
@@ -54,6 +55,7 @@ class Provider(ComputeNodeABC):
         """
         self.cloudtype = "multipass"
         self.cloud = cloud
+        self.name = name
 
     # noinspection PyPep8Naming
     def Print(self, data, output=None, kind=None):
@@ -139,6 +141,27 @@ class Provider(ComputeNodeABC):
             d.append(entry)
         return d
 
+    # New method to return vm status
+    def _get_vm_status(self, name=None) -> dict:
+
+        dict_result = {}
+        result = Shell.run(f"multipass info {name} --format=json")
+
+        if f'instance "{name}" does not exist' in result:
+            dict_result = {
+                'name': name,
+                'status': "instance does not exist"
+            }
+        else:
+            result = json.loads(result)
+            dict_result = {
+                            'name': name,
+                            'status': result["info"][name]['state']
+                          }
+
+        return dict_result
+
+
     def _images(self):
         result = Shell.run("multipass find --format=json")
         result = eval(result)['images']
@@ -182,7 +205,6 @@ class Provider(ComputeNodeABC):
         result = self._vm()
         return self.update_dict(result, kind="vm")
 
-
     # IMPLEMENT
     def start(self, name=None):
         """
@@ -191,20 +213,31 @@ class Provider(ComputeNodeABC):
         :param name: the unique node name
         :return:  The dict representing the node
         """
+
         banner(f"start {name}")
         os.system(f"multipass start {name}")
         print('\n')
 
+        # Get the vm status.
+        dict_result = self._get_vm_status(name)
+
+        return dict_result
+
     # IMPLEMENT
-    def delete(self, name="cloudmesh", purge=True):
-        banner(f"deleste {name}")
-        # terminate and purge
-        os.system(f"multipass delete {name}")
-        # Once purged it cannot be recovered.
-        # So we add a purge bool if we do not want o purge we set it to False
+    def delete(self, name="cloudmesh", purge=False):
+        banner(f"delete {name}")
+
         if purge:
-            os.system(f"multipass purge")
-        print('\n')
+            # terminate and purge
+            os.system(f"multipass delete {name} --purge")
+        else:
+            # terminate only
+            os.system(f"multipass delete {name}")
+
+        # Get the vm status.
+        dict_result = self._get_vm_status(name)
+
+        return dict_result
 
     # IMPLEMENT
     def list(self, **kwargs):
@@ -239,7 +272,14 @@ class Provider(ComputeNodeABC):
         :param name:
         :return: The dict representing the node including updated status
         """
-        raise NotImplementedError
+
+        banner(f"stop {name}")
+        os.system(f"multipass stop {name}")
+
+        # Get the vm status.
+        dict_result = self._get_vm_status(name)
+
+        return dict_result
 
     # IMPLEMENT
     def info(self, name=None):
@@ -278,7 +318,9 @@ class Provider(ComputeNodeABC):
         :param name: the name of the node
         :return: the dict of the node
         """
-        raise NotImplementedError
+        banner(f"destroy {name}")
+
+        return self.delete(name, purge=True)
 
     # IMPLEMENT
     def create(self,
@@ -304,7 +346,14 @@ class Provider(ComputeNodeABC):
         """
         create one node
         """
-        raise NotImplementedError
+
+        banner(f"create {name}")
+        os.system(f"multipass launch --name {name}")
+
+        # Get the vm status.
+        dict_result = self._get_vm_status(name)
+
+        return dict_result
 
     # DO NOT IMPLEMENT
     def set_server_metadata(self, name, **metadata):
@@ -402,7 +451,20 @@ class Provider(ComputeNodeABC):
         :param name: A list of node names
         :return:  A list of dict representing the nodes
         """
-        raise NotImplementedError
+
+        banner(f"reboot {name}")
+
+        dict_result = self.stop(name)
+
+        if (dict_result["status"] in "Stopped Suspended"):
+            #If the status is stopped or suspended then attempt to start.
+            dict_result = self.start(name)
+        else:
+            #Something wrong..
+            dict_result["status"] = "Error when stopping instance"
+
+        return dict_result
+
 
     # DO NOT IMPLEMENT
     def attach_public_ip(self, name=None, ip=None):
