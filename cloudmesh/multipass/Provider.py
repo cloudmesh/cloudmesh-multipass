@@ -257,12 +257,18 @@ class Provider(ComputeNodeABC):
         print('\n')
 
     # IMPLEMENT
-    def run(self, name="cloudmesh", command=None):
-        # please add self.name so the command gets started on the named vm
+    def run(self, name="cloudmesh", command=None, executor="cloudmesh"):
         banner(f"run {name} {command}")
         # improve next line
-        os.system(f"multipass exec{name} --  {command}")
-        print('\n')
+        if executor == "cloudmesh":
+            r = Shell.run(f"multipass exec {name} --  {command}")
+        elif executor == "os":
+            os.system(f"multipass exec {name} --  {command}")
+            print('\n')
+            result = ""
+        else:
+            Console.error("run: executor must be cloudmesh or os, found: {executor}")
+        return result
 
     # IMPLEMENT
     def stop(self, name=None):
