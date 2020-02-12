@@ -287,9 +287,9 @@ class Provider(ComputeNodeABC):
         # improve next line
         result = ""
         if executor == "buffer":
-            r = Shell.live(f"multipass exec {name} -- {command}")
+            result = Shell.live(f"multipass exec {name} -- {command}")
         elif executor == "buffer":
-            r = Shell.run(f"multipass exec {name} -- {command}")
+            result = Shell.run(f"multipass exec {name} -- {command}")
         elif executor == "os":
             os.system(f"multipass exec {name} -- {command}")
             print('\n')
