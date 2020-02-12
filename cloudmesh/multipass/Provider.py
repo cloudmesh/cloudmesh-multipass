@@ -55,7 +55,7 @@ class Provider(ComputeNodeABC):
         """
         self.cloudtype = "multipass"
         self.cloud = cloud
-        self.name = name
+        self.name = name # This is the name of the cloud and not the name of the instance
 
     # noinspection PyPep8Naming
     def Print(self, data, output=None, kind=None):
