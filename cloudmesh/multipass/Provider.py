@@ -261,7 +261,7 @@ class Provider(ComputeNodeABC):
         # please add self.name so the command gets started on the named vm
         banner(f"run {name} {command}")
         # improve next line
-        os.system(f"multipass exec -- {name} {command}")
+        os.system(f"multipass exec{name} --  {command}")
         print('\n')
 
     # IMPLEMENT
