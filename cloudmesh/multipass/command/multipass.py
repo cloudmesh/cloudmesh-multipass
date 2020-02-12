@@ -104,7 +104,7 @@ class MultipassCommand(PluginCommand):
                 else:
 
                     provider = Provider(name=name)
-                    provider.run(arguments.COMMAND)
+                    provider.run(name,arguments.COMMAND)
 
             return ""
 
