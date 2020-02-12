@@ -54,6 +54,44 @@ class TestMultipass:
         VERBOSE(result)
 
         assert "18.04" in result
+    
+    def test_cms_vm(self):
+        HEADING()
+        Benchmark.Start()
+        result = Shell.execute("cms multipass vm", shell=True)
+        Benchmark.Stop()
+        VERBOSE(result)
+        
+        assert "18.04" in result
+
+    def test_provider_vm(self):
+        HEADING()
+        
+        Benchmark.Start()
+        result = self.provider.vm()
+        Benchmark.Stop()
+        VERBOSE(result)
+        
+        assert "18.04" in result
+    
+    def test_cms_shell(self):
+        HEADING()
+        Benchmark.Start()
+        result = Shell.execute("cms multipass shell", shell=True)
+        Benchmark.Stop()
+        VERBOSE(result)
+        
+        #assert "" in result
+        
+    def test_provider_shell(self):
+        HEADING()
+        
+        Benchmark.Start()
+        result = self.provider.shell(name="cloudmesh")
+        Benchmark.Stop()
+        VERBOSE(result)
+        
+        #assert "" in result
 
     def test_provider_run_os(self):
         HEADING()
