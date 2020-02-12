@@ -262,10 +262,11 @@ class Provider(ComputeNodeABC):
 
         :return: an empty string
         """
+        banner("shell")
 
         os.system(f"multipass shell {name}")
-        result = ""
-        return result
+        print ("\n")
+        return ""
 
     # IMPLEMENT
     def run(self, name="cloudmesh", command=None, executor="buffer"):
