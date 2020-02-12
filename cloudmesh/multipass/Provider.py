@@ -1,13 +1,12 @@
+import json
 import os
 
-from cloudmesh.common.util import banner
-from cloudmesh.common.Shell import Shell
-from cloudmesh.common.console import Console
-import sys
-from pprint import pprint
+from cloudmesh.abstractclass.ComputeNodeABC import ComputeNodeABC
 from cloudmesh.common.DateTime import DateTime
 from cloudmesh.common.Printer import Printer
-from cloudmesh.abstractclass.ComputeNodeABC import ComputeNodeABC
+from cloudmesh.common.Shell import Shell
+from cloudmesh.common.console import Console
+from cloudmesh.common.util import banner
 
 
 # can be installed with pip install cloudmesh-common
@@ -46,14 +45,25 @@ class Provider(ComputeNodeABC):
         },
     }
 
-    def __init__(self, cloud="multipass"):
+    def __init__(self, name="multipass",
+                 configuration="~/.cloudmesh/cloudmesh.yaml"):
         """
+        Initializes the multipass provider. The default parameters are read
+        from the configuration file that is defined in yaml format.
 
-        :param cloud: The name of the cloud, by default multipass
-        :param name: The name of the vm, by default, multipass
+        :param name: The name of the provider as defined in the yaml file
+        :param configuration: The location of the yaml configuration file
         """
+        #
+        # The following will be added later once we have identified how to
+        # configure multipass from cloudmesh.yaml. This requires understanding
+        # the get and set methods and setting defaults for sizes
+        #
+        # conf = Config(configuration)["cloudmesh"]
+        # super().__init__(name, conf)
+        #
         self.cloudtype = "multipass"
-        self.cloud = cloud
+        self.cloud = name
 
     # noinspection PyPep8Naming
     def Print(self, data, output=None, kind=None):
@@ -139,6 +149,26 @@ class Provider(ComputeNodeABC):
             d.append(entry)
         return d
 
+    # New method to return vm status
+    def _get_vm_status(self, name=None) -> dict:
+
+        dict_result = {}
+        result = Shell.run(f"multipass info {name} --format=json")
+
+        if f'instance "{name}" does not exist' in result:
+            dict_result = {
+                'name': name,
+                'status': "instance does not exist"
+            }
+        else:
+            result = json.loads(result)
+            dict_result = {
+                'name': name,
+                'status': result["info"][name]['state']
+            }
+
+        return dict_result
+
     def _images(self):
         result = Shell.run("multipass find --format=json")
         result = eval(result)['images']
@@ -182,7 +212,6 @@ class Provider(ComputeNodeABC):
         result = self._vm()
         return self.update_dict(result, kind="vm")
 
-
     # IMPLEMENT
     def start(self, name=None):
         """
@@ -191,20 +220,29 @@ class Provider(ComputeNodeABC):
         :param name: the unique node name
         :return:  The dict representing the node
         """
+
         banner(f"start {name}")
         os.system(f"multipass start {name}")
         print('\n')
 
+        # Get the vm status.
+        dict_result = self._get_vm_status(name)
+
+        return dict_result
+
     # IMPLEMENT
-    def delete(self, name="cloudmesh", purge=True):
-        banner(f"deleste {name}")
-        # terminate and purge
-        os.system(f"multipass delete {name}")
-        # Once purged it cannot be recovered.
-        # So we add a purge bool if we do not want o purge we set it to False
+    def delete(self, name="cloudmesh", purge=False):
         if purge:
-            os.system(f"multipass purge")
-        print('\n')
+            # terminate and purge
+            os.system(f"multipass delete {name} --purge")
+        else:
+            # terminate only
+            os.system(f"multipass delete {name}")
+
+        # Get the vm status.
+        dict_result = self._get_vm_status(name)
+
+        return dict_result
 
     # IMPLEMENT
     def list(self, **kwargs):
@@ -213,23 +251,57 @@ class Provider(ComputeNodeABC):
 
         :return: an array of dicts representing the nodes
         """
-        banner("list")
+        # WRONG
         os.system("multipass ls")
         print('\n')
 
     # IMPLEMENT
     def shell(self, name="cloudmesh"):
+        """
+        log into the shell of instance
+
+        :return: an empty string
+        """
         banner("shell")
+
         os.system(f"multipass shell {name}")
-        print('\n')
+        print ("\n")
+        return ""
 
     # IMPLEMENT
-    def run(self, name="cloudmesh", command=None):
-        # please add self.name so the command gets started on the named vm
+    def run(self, name="cloudmesh", command=None, executor="buffer"):
+        """
+        executes a command in a named multipass instance
+
+        :param name: the name of the instance
+        :param command: the command
+        :param executor: one of live, buffer, os
+        :return: only returned when using live or buffer
+
+        live   = prints the output immediatly but also buffers it and returns it
+                 at the end
+
+        buffer = buffers the result and only returns it after the command has
+                 executed.
+
+        os =     just uses os.system and returns a "" at the end. This is good
+                 for debugging
+
+        """
         banner(f"run {name} {command}")
         # improve next line
-        os.system(f"multipass exec -- {name} {command}")
-        print('\n')
+        result = ""
+        if executor == "buffer":
+            result = Shell.live(f"multipass exec {name} -- {command}")
+        elif executor == "buffer":
+            result = Shell.run(f"multipass exec {name} -- {command}")
+        elif executor == "os":
+            os.system(f"multipass exec {name} -- {command}")
+            print('\n')
+        else:
+            Console.error(
+                "run: executor must be cloudmesh or os, found: {executor}")
+        return result
 
     # IMPLEMENT
     def stop(self, name=None):
@@ -239,7 +311,13 @@ class Provider(ComputeNodeABC):
         :param name:
         :return: The dict representing the node including updated status
         """
-        raise NotImplementedError
+        # WRONG
+        os.system(f"multipass stop {name}")
+
+        # Get the vm status.
+        dict_result = self._get_vm_status(name)
+
+        return dict_result
 
     # IMPLEMENT
     def info(self, name=None):
@@ -278,7 +356,9 @@ class Provider(ComputeNodeABC):
         :param name: the name of the node
         :return: the dict of the node
         """
-        raise NotImplementedError
+        banner(f"destroy {name}")
+
+        return self.delete(name, purge=True)
 
     # IMPLEMENT
     def create(self,
@@ -304,7 +384,14 @@ class Provider(ComputeNodeABC):
         """
         create one node
         """
-        raise NotImplementedError
+
+        banner(f"create {name}")
+        os.system(f"multipass launch --name {name}")
+
+        # Get the vm status.
+        dict_result = self._get_vm_status(name)
+
+        return dict_result
 
     # DO NOT IMPLEMENT
     def set_server_metadata(self, name, **metadata):
@@ -402,7 +489,19 @@ class Provider(ComputeNodeABC):
         :param name: A list of node names
         :return:  A list of dict representing the nodes
         """
-        raise NotImplementedError
+
+        banner(f"reboot {name}")
+
+        dict_result = self.stop(name)
+
+        if dict_result["status"] in "Stopped Suspended":
+            # If the status is stopped or suspended then attempt to start.
+            dict_result = self.start(name)
+        else:
+            # Something wrong..
+            dict_result["status"] = "Error when stopping instance"
+
+        return dict_result
 
     # DO NOT IMPLEMENT
     def attach_public_ip(self, name=None, ip=None):
@@ -500,10 +599,6 @@ class Provider(ComputeNodeABC):
         raise NotImplementedError
 
     # DO NOT IMPLEMENT
-    def list_secgroup_rules(self, name='default'):
-        raise NotImplementedError
-
-    # DO NOT IMPLEMENT
     def add_secgroup(self, name=None, description=None):
         raise NotImplementedError
 
@@ -517,10 +612,6 @@ class Provider(ComputeNodeABC):
 
     # DO NOT IMPLEMENT
     def remove_secgroup(self, name=None):
-        raise NotImplementedError
-
-    # DO NOT IMPLEMENT
-    def upload_secgroup(self, name=None):
         raise NotImplementedError
 
     # DO NOT IMPLEMENT
@@ -566,7 +657,7 @@ class Provider(ComputeNodeABC):
 
 if __name__ == "__main__":
     # excellent-titmouse is multipass instance name
-    p = Provider() #name="cloudmesh"
+    p = Provider()  # name="cloudmesh"
     p.vm()
     p.start()
     p.list()
@@ -574,4 +665,3 @@ if __name__ == "__main__":
     p.images()
     p.delete()
     p.list()
-
