@@ -1,15 +1,14 @@
 from __future__ import print_function
+
+from cloudmesh.common.console import Console
+from cloudmesh.common.debug import VERBOSE
+from cloudmesh.common.parameter import Parameter
+from cloudmesh.common.util import banner
+from cloudmesh.common.variables import Variables
+from cloudmesh.multipass.Provider import Provider
+from cloudmesh.shell.command import PluginCommand
 from cloudmesh.shell.command import command
 from cloudmesh.shell.command import map_parameters
-from cloudmesh.shell.command import PluginCommand
-from cloudmesh.multipass.Provider import Provider
-from cloudmesh.common.parameter import Parameter
-from cloudmesh.common.console import Console
-from cloudmesh.common.util import path_expand
-from pprint import pprint
-from cloudmesh.common.debug import VERBOSE
-from cloudmesh.common.variables import Variables
-from cloudmesh.common.util import banner
 
 
 class MultipassCommand(PluginCommand):
@@ -89,7 +88,9 @@ class MultipassCommand(PluginCommand):
                 provider = Provider()
                 images = provider.images()
 
-                print(provider.Print(images, kind='image', output=arguments.output))
+                print(provider.Print(images,
+                                     kind='image',
+                                     output=arguments.output))
 
             return ""
 
@@ -103,8 +104,8 @@ class MultipassCommand(PluginCommand):
                     Console.ok(f"run {name} {arguments.COMMAND}")
                 else:
 
-                    provider = Provider(name=name)
-                    provider.run(name,arguments.COMMAND)
+                    provider = Provider()
+                    provider.run(name, arguments.COMMAND)
 
             return ""
 
@@ -119,7 +120,7 @@ class MultipassCommand(PluginCommand):
                 if arguments.dryrun:
                     Console.ok(f"dryrun create {name}")
                 else:
-                    provider = Provider(name=name)
+                    provider = Provider()
                     result = provider.create(name)
                     VERBOSE(result)
 
@@ -136,7 +137,7 @@ class MultipassCommand(PluginCommand):
                 if arguments.dryrun:
                     Console.ok(f"dryrun start {name}")
                 else:
-                    provider = Provider(name=name)
+                    provider = Provider()
                     result = provider.start(name)
                     VERBOSE(result)
 
@@ -170,8 +171,9 @@ class MultipassCommand(PluginCommand):
                 if arguments.dryrun:
                     Console.ok(f"dryrun delete {name}")
                 else:
-                    provider = Provider(name=name)
-                    result = provider.delete(name)  ##Default purge false.
+                    provider = Provider()
+                    # Default purge is false. Is this ok?
+                    result = provider.delete(name)
                     VERBOSE(result)
 
             return result
@@ -187,7 +189,7 @@ class MultipassCommand(PluginCommand):
                 if arguments.dryrun:
                     Console.ok(f"dryrun destroy {name}")
                 else:
-                    provider = Provider(name=name)
+                    provider = Provider()
                     result = provider.destroy(name)
                     VERBOSE(result)
 
@@ -204,7 +206,7 @@ class MultipassCommand(PluginCommand):
                 if arguments.dryrun:
                     Console.ok(f"dryrun reboot {name}")
                 else:
-                    provider = Provider(name=name)
+                    provider = Provider()
                     result = provider.reboot(name)
                     VERBOSE(result)
 
@@ -221,13 +223,11 @@ class MultipassCommand(PluginCommand):
             if arguments.dryrun:
                 banner("dryrun shell {name}")
             else:
-                provider = Provider(name=name)
+                provider = Provider()
                 provider.shell()
 
             return ""
 
-
         else:
             Console.error("Not yet implemented")
         return ""
-
