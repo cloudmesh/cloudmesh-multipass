@@ -232,8 +232,6 @@ class Provider(ComputeNodeABC):
 
     # IMPLEMENT
     def delete(self, name="cloudmesh", purge=False):
-        banner(f"delete {name}")
-
         if purge:
             # terminate and purge
             os.system(f"multipass delete {name} --purge")
@@ -253,7 +251,7 @@ class Provider(ComputeNodeABC):
 
         :return: an array of dicts representing the nodes
         """
-        banner("list")
+        # WRONG
         os.system("multipass ls")
         print('\n')
 
@@ -306,8 +304,7 @@ class Provider(ComputeNodeABC):
         :param name:
         :return: The dict representing the node including updated status
         """
-
-        banner(f"stop {name}")
+        # WRONG
         os.system(f"multipass stop {name}")
 
         # Get the vm status.
