@@ -470,7 +470,7 @@ class Provider(ComputeNodeABC):
         """
 
         # WRONG
-        curr_status = self(name)
+        curr_status = self._get_vm_status(name)
         if (curr_status['status'] != "Stopped"):
             os.system(f"multipass stop {name}")
 
