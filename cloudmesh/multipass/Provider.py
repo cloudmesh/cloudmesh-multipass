@@ -251,9 +251,8 @@ class Provider(ComputeNodeABC):
 
         :return: an array of dicts representing the nodes
         """
-        # WRONG
-        os.system("multipass ls")
-        print('\n')
+        # Already implemented by vm method
+        return self.vm()
 
     # IMPLEMENT
     def shell(self, name="cloudmesh"):
