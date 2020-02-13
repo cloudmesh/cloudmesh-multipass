@@ -57,9 +57,11 @@ Arguments:
                        <url> is a custom image URL that is in http://, https://,
                        or file:// format.
                        
-Gregor: interesting is the file:// and http(s):// we shoudl try if we can do 19.10 on 
+Gregor: interesting is the file:// and http(s):// we shoudl try if we can 
+  do 19.10 on 
   osx and windows
 """
+
 
 class Provider(ComputeNodeABC):
     kind = "multipass"
@@ -140,9 +142,11 @@ class Provider(ComputeNodeABC):
         },
     }
 
-    # please add a status here if there is one that you observe. WHat are all the States form multipass?
-    STATUS = ['UNKOWN'}
-              
+    # please add a status here if there is one that you observe. WHat are all
+    # the States form multipass?
+
+    STATUS = ['UNKOWN']
+
     def __init__(self, name="multipass",
                  configuration="~/.cloudmesh/cloudmesh.yaml"):
         """
@@ -359,7 +363,6 @@ class Provider(ComputeNodeABC):
 
         # Already implemented by vm method
         return self.vm()
-=
 
     # IMPLEMENT
     def shell(self, name="cloudmesh"):
@@ -371,7 +374,7 @@ class Provider(ComputeNodeABC):
         banner("shell")
 
         os.system(f"multipass shell {name}")
-        print ("\n")
+        print("\n")
         return ""
 
     # IMPLEMENT
@@ -413,7 +416,7 @@ class Provider(ComputeNodeABC):
     # TODO: docstring
     def get(self, key=None):
         result = ""
-        if (key != None):
+        if (key is not None):
             result = Shell.run(f"multipass get {key}")
         return result
 
@@ -421,7 +424,7 @@ class Provider(ComputeNodeABC):
     # TODO: docstring
     def set(self, key=None, value=None):
         result = ""
-        if (key != None):
+        if (key is not None):
             result = Shell.run(f"multipass set {key} {value}")
         return result
 
@@ -438,7 +441,6 @@ class Provider(ComputeNodeABC):
         curr_status = self._get_vm_status(name)
         if (curr_status['status'] != "Stopped"):
             os.system(f"multipass stop {name}")
-
 
         # Get the vm status.
         dict_result = self._get_vm_status(name)
@@ -458,7 +460,6 @@ class Provider(ComputeNodeABC):
         result = [result[name]]
         return self.update_dict(result, kind="info")
 
-
     # IMPLEMENT
     def suspend(self, name=None):
         """
@@ -472,7 +473,7 @@ class Provider(ComputeNodeABC):
 
         # Get the vm status.
         dict_result = self._get_vm_status(name)
-        #raise NotImplementedError
+        # raise NotImplementedError
 
         return dict_result
 
@@ -491,7 +492,7 @@ class Provider(ComputeNodeABC):
         dict_result = self._get_vm_status(name)
         return dict_result
         # raise NotImplementedError
-        #raise NotImplementedError
+        # raise NotImplementedError
 
     # IMPLEMENT
     def destroy(self, name=None):
@@ -830,6 +831,7 @@ class Provider(ComputeNodeABC):
         result = Shell.run("multipass info --all --format=json")
         result = eval(result)['info']
         return result
+
 
 if __name__ == "__main__":
     # excellent-titmouse is multipass instance name

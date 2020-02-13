@@ -11,7 +11,6 @@ from cloudmesh.shell.command import command
 from cloudmesh.shell.command import map_parameters
 
 
-
 class MultipassCommand(PluginCommand):
 
     # noinspection PyUnusedLocal
@@ -105,7 +104,7 @@ class MultipassCommand(PluginCommand):
             else:
 
                 provider = Provider()
-                images = provider.images(
+                images = provider.images()
 
                 print(provider.Print(images,
                                      kind='image',
@@ -140,7 +139,7 @@ class MultipassCommand(PluginCommand):
                     Console.ok(f"dryrun create {name} {image}")
                 else:
                     provider = Provider()
-                    result = provider.create(name,image)
+                    result = provider.create(name, image)
                     VERBOSE(result)
 
             return result
@@ -299,7 +298,6 @@ class MultipassCommand(PluginCommand):
 
             return ""
 
-
         elif arguments.info:
 
             if arguments.dryrun:
@@ -307,7 +305,10 @@ class MultipassCommand(PluginCommand):
             else:
                 provider = Provider()
                 info = provider.info()
-                print(provider.Print(info, kind='info', output=arguments.output))
+                print(
+                    provider.Print(info,
+                                   kind='info',
+                                   output=arguments.output))
 
             return ""
 
