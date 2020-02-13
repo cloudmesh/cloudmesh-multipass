@@ -137,3 +137,11 @@ class TestMultipass:
     def test_benchmark(self):
         HEADING()
         Benchmark.print(csv=True, tag=cloud)
+
+    def test_info(self):
+        HEADING()
+        Benchmark.Start()
+        result = Shell.execute("cms multipass info", shell=True)
+        Benchmark.Stop()
+        VERBOSE(result)
+        assert result != None, "result cannot be null"

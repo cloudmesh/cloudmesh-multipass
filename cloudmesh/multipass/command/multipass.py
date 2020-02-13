@@ -27,6 +27,7 @@ class MultipassCommand(PluginCommand):
                 multipass delete NAMES [--output=OUTPUT][--dryrun]
                 multipass shell NAMES [--dryrun]
                 multipass run COMMAND NAMES [--output=OUTPUT] [--dryrun]
+                multipass info [--output=OUTPUT] [--dryrun]
                 multipass destroy NAMES [--dryrun]
                 multipass create NAMES [--image=IMAGE] [--size=SIZE] [--dryrun]
                 multipass reboot NAMES [--dryrun]
@@ -86,7 +87,7 @@ class MultipassCommand(PluginCommand):
             else:
 
                 provider = Provider()
-                images = provider.images()
+                images = provider.images(
 
                 print(provider.Print(images,
                                      kind='image',
@@ -225,6 +226,18 @@ class MultipassCommand(PluginCommand):
             else:
                 provider = Provider()
                 provider.shell()
+
+            return ""
+
+
+        elif arguments.info:
+
+            if arguments.dryrun:
+                banner("dryrun info")
+            else:
+                provider = Provider()
+                info = provider.info()
+                print(provider.Print(info, kind='info', output=arguments.output))
 
             return ""
 
