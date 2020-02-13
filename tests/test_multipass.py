@@ -13,6 +13,7 @@ from cloudmesh.multipass.Provider import Provider
 Benchmark.debug()
 
 cloud= "local"
+instance="cloudmesh-test"
 
 @pytest.mark.incremental
 class TestMultipass:
@@ -90,6 +91,44 @@ class TestMultipass:
         # find a good assertion
 
         assert "18.04" in result
+        
+    def test_cms_vm(self):
+        HEADING()
+        
+        Benchmark.Start()
+        result = Shell.execute("cms multipass vm", shell=True)
+        Benchmark.Stop()
+        VERBOSE(result)
+        
+        assert "18.04" in result
+        
+    def test_provider_vm(self):
+        HEADING()
+        
+        Benchmark.Start()
+        result = self.provider.vm()
+        Benchmark.Stop()
+        VERBOSE(result)
+        
+        assert "18.04" in result
+
+    def test_cms_shell(self):
+        HEADING()
+        
+        Benchmark.Start()
+        Shell.execute(f"cms multipass launch -n {instance}", shell=True)
+        result = Shell.execute(f"cms multipass shell {instance}", shell=True)
+        Benchmark.Stop()
+        VERBOSE(result)
+        
+    def test_provider_shell(self):
+        HEADING()
+        
+        Benchmark.Start()
+        Shell.execute(f"cms multipass launch -n {instance}", shell=True)
+        result = self.provider.shell(name=instance)
+        Benchmark.Stop()
+        VERBOSE(result)
 
     def test_benchmark(self):
         HEADING()
