@@ -251,7 +251,7 @@ class Provider(ComputeNodeABC):
 
         :return: an array of dicts representing the nodes
         """
-        # WRONG
+        banner("list")
         os.system("multipass ls")
         print('\n')
 
@@ -311,7 +311,7 @@ class Provider(ComputeNodeABC):
         :param name:
         :return: The dict representing the node including updated status
         """
-        # WRONG
+        banner(f"stop {name}")
         os.system(f"multipass stop {name}")
 
         # Get the vm status.
@@ -327,7 +327,14 @@ class Provider(ComputeNodeABC):
         :param name:
         :return: The dict representing the node including updated status
         """
-        raise NotImplementedError
+        banner(f"info {name}")
+        os.system(f"multipass info {name}")
+
+        # Get the vm status.
+        dict_result = self._get_vm_status(name)
+
+        return dict_result
+        #raise NotImplementedError
 
     # IMPLEMENT
     def suspend(self, name=None):
@@ -337,7 +344,14 @@ class Provider(ComputeNodeABC):
         :param name: the name of the node
         :return: The dict representing the node
         """
-        raise NotImplementedError
+        banner(f"suspend {name}")
+        os.system(f"multipass suspend {name}")
+
+        # Get the vm status.
+        dict_result = self._get_vm_status(name)
+        #raise NotImplementedError
+
+        return dict_result
 
     # IMPLEMENT
     def resume(self, name=None):
@@ -347,7 +361,14 @@ class Provider(ComputeNodeABC):
         :param name: the name of the node
         :return: the dict of the node
         """
-        raise NotImplementedError
+        banner(f"resume {name}")
+        os.system(f"multipass start {name}")
+
+        # Get the vm status.
+        dict_result = self._get_vm_status(name)
+        return dict_result
+        # raise NotImplementedError
+        #raise NotImplementedError
 
     # IMPLEMENT
     def destroy(self, name=None):
@@ -385,8 +406,8 @@ class Provider(ComputeNodeABC):
         create one node
         """
 
-        banner(f"create {name}")
-        os.system(f"multipass launch --name {name}")
+        banner(f"create {name} {image}")
+        os.system(f"multipass launch --name {name} {image}")
 
         # Get the vm status.
         dict_result = self._get_vm_status(name)
