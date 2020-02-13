@@ -39,6 +39,10 @@ class MultipassCommand(PluginCommand):
                                        [--dryrun]
                 multipass reboot NAMES [--dryrun]
                 multipass mount SOURCE DESTINATION [--dryrun]
+                multipass umount SOURCE [--dryrun]
+                multipass transfer SOURCE DESTINATION [--dryrun]
+                multipass set key=VALUE [--dryrun]
+                multipass get [key] [--dryrun]
 
           Interface to multipass
 
@@ -57,6 +61,20 @@ class MultipassCommand(PluginCommand):
               cms multipass start vm1,vm2
 
                  start multiple vms
+
+              cms multipass get
+
+                 gets all multipass internal key values
+
+              cms multipass get KEY
+
+                 gets a specific internal key. known keys
+
+                  client.gui.autostart
+                  client.primary-name
+                  local.driver
+
+                  are there more?
 
               WHEN YOU IMPLEMENT A FUNCTION INCLUDE MINIMAL
               DOCUMENTATION HERE
