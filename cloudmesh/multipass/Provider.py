@@ -311,7 +311,9 @@ class Provider(ComputeNodeABC):
         :return: The dict representing the node including updated status
         """
         # WRONG
-        os.system(f"multipass stop {name}")
+        curr_status = self._get_vm_status(name)
+        if (curr_status['status'] != "Stopped"):
+            os.system(f"multipass stop {name}")
 
         # Get the vm status.
         dict_result = self._get_vm_status(name)
