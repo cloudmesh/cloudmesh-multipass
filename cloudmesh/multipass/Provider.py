@@ -935,7 +935,16 @@ class Provider(ComputeNodeABC):
         TODO: proper docstring
         """
         # you may need to use glob for dirs (recursively)
-        raise NotImplementedError
+        # just create a glob and put it in a list.
+        result = ""
+        if (source is not None) and (source is not None) and (name is not None):
+            result = Shell.run(
+                f"multipass transfer --name={name} {source} {destination}")
+        else:
+            Console.error("make sure to specify all attributes")
+            return ""
+        # TODO: this should return the newly mounted volume as cloudmesh json
+        return result
 
 
 
