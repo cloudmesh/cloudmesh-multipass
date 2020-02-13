@@ -63,6 +63,35 @@ Gregor: interesting is the file:// and http(s):// we shoudl try if we can
 """
 
 
+# multipass mount
+# multipass transfer
+
+"""
+  delete    Delete instances
+  exec      Run a command on an instance
+  find      Display available images to create instances from
+  get       Get a configuration setting
+  help      Display help about a command
+  info      Display information about instances
+  launch    Create and start an Ubuntu instance
+  list      List all available instances
+  mount     Mount a local directory in the instance
+  purge     Purge all deleted instances permanently
+  recover   Recover deleted instances
+  restart   Restart instances
+  set       Set a configuration setting
+  shell     Open a shell on a running instance
+  start     Start instances
+  stop      Stop running instances
+  suspend   Suspend running instances
+  transfer  Transfer files between the host and instances
+  umount    Unmount a directory from an instance
+  version   Show version details
+
+"""
+
+
+
 class Provider(ComputeNodeABC):
     kind = "multipass"
 
@@ -433,7 +462,6 @@ class Provider(ComputeNodeABC):
         return result
 
     # IMPLEMENT, new method
-    # TODO: docstring
     def get(self, key=None):
         """
         returns the variable with the given key name from multipass
@@ -505,7 +533,6 @@ class Provider(ComputeNodeABC):
 
         # Get the vm status.
         dict_result = self._get_vm_status(name)
-        # raise NotImplementedError
 
         return dict_result
 
@@ -523,8 +550,6 @@ class Provider(ComputeNodeABC):
         # Get the vm status.
         dict_result = self._get_vm_status(name)
         return dict_result
-        # raise NotImplementedError
-        # raise NotImplementedError
 
     # IMPLEMENT
     def destroy(self, name=None):
@@ -871,6 +896,57 @@ class Provider(ComputeNodeABC):
         #
         result = eval(result)['info']
         return result
+
+    # implement
+    def mount(self, name="cloudmesh", source=None, destination=None):
+        """
+        mounts the sourse into the instance at the given destination
+
+        TODO: proper docstring
+        """
+        result = ""
+        if (source is not None) and (source is not None) and (name is not None):
+            result = Shell.run(f"multipass mount --name={name} {source} {destination}")
+        else:
+            Console.error("make sure to specify all attributes")
+            return ""
+        # TODO: this should return the newly mounted volume as cloudmesh json
+        return result
+
+    # implement
+    def umount(self, name="cloudmesh", path=None):
+        """
+        Unmount a directory from an instance.
+
+        TODO: propper docstring
+        :return:
+        """
+        raise NotImplementedError
+
+    # implement
+    def transfer(self,
+                 name="cloudmesh",
+                 source=None,
+                 destination=None,
+                 recursive=True):
+        """
+        copies files or entire directories into the instance
+
+        TODO: proper docstring
+        """
+        # you may need to use glob for dirs (recursively)
+        # just create a glob and put it in a list.
+        result = ""
+        if (source is not None) and (source is not None) and (name is not None):
+            result = Shell.run(
+                f"multipass transfer --name={name} {source} {destination}")
+        else:
+            Console.error("make sure to specify all attributes")
+            return ""
+        # TODO: this should return the newly mounted volume as cloudmesh json
+        return result
+
+
 
 
 if __name__ == "__main__":

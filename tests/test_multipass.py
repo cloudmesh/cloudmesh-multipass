@@ -45,7 +45,6 @@ class TestMultipass:
         Benchmark.Stop()
         assert True
 
-
     def test_provider_images(self):
         HEADING()
 

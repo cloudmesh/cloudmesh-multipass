@@ -40,6 +40,11 @@ class MultipassCommand(PluginCommand):
                                        [--cloud-init=CLOUDINIT]
                                        [--dryrun]
                 multipass reboot NAMES [--dryrun]
+                multipass mount SOURCE DESTINATION [--dryrun]
+                multipass umount SOURCE [--dryrun]
+                multipass transfer SOURCE DESTINATION [--dryrun]
+                multipass set key=VALUE [--dryrun]
+                multipass get [key] [--dryrun]
 
           Interface to multipass
 
@@ -76,6 +81,22 @@ class MultipassCommand(PluginCommand):
             Stop one or multiple vms with
 
                 cms multipass stop NAMES
+
+            Gets all multipass internal key values with
+
+              cms multipass get
+
+            Gets a specific internal key.
+
+              cms multipass get KEY
+
+              Known keys
+       
+                  client.gui.autostart
+                  client.primary-name
+                  local.driver
+
+                  are there more?
 
             Reboot (stop and then start) vms with
 
@@ -342,6 +363,18 @@ class MultipassCommand(PluginCommand):
                     provider.Print(info,
                                    kind='info',
                                    output=arguments.output))
+
+            return ""
+
+        elif arguments.mount:
+
+            if arguments.dryrun:
+                banner(f"dryrun mount {arguments.SOURCE} {arguments.DESTINATION}")
+            else:
+                provider = Provider()
+                provider.mount(arguments.SOURCE, arguments.DESTINATION)
+
+                # list the mounts and display as table
 
             return ""
 
