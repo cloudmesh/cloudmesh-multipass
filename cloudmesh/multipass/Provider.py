@@ -9,14 +9,15 @@ from cloudmesh.common.console import Console
 from cloudmesh.common.util import banner
 
 # some of the banners will be removed.
-@ they must be used for dryrun
+# they must be used for dryrun
 # we also keep it for shell, abd create
 
 # in case of create we need to look at cloudmesh-openstack as it also measures 
 # the time it takes to start the image and includes it into the cm dict
 
-# all but the shell need to return a cm dict even if the original multipass does not return one
-# for example if we delete a vom we need to return the cmdict with a stuatus and introduce a status "DELETE"
+# all but the shell need to return a cm dict even if the original multipass does
+# not return one for example if we delete a vom we need to return the cmdict
+# with a stuatus and introduce a status "DELETE"
 
 
 """
