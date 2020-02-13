@@ -24,7 +24,9 @@ class MultipassCommand(PluginCommand):
                 multipass images [--output=OUTPUT] [--dryrun]
                 multipass start NAMES [--output=OUTPUT] [--dryrun]
                 multipass stop NAMES [--output=OUTPUT] [--dryrun]
+                multipass reboot NAMES [--output=OUTPUT] [--dryrun]
                 multipass delete NAMES [--output=OUTPUT][--dryrun]
+                multipass destroy NAMES [--output=OUTPUT][--dryrun]
                 multipass shell NAMES [--dryrun]
                 multipass run COMMAND NAMES [--output=OUTPUT] [--dryrun]
                 multipass info NAMES [--output=OUTPUT] [--dryrun]
@@ -42,7 +44,9 @@ class MultipassCommand(PluginCommand):
           Interface to multipass
 
           Options:
-               --output=OUTPUT  the output format [default: table]
+               --output=OUTPUT  the output format [default: table]. Other values are yaml, csv and json.
+
+               --image=IMAGE    the image name to be used to create a VM.
 
           Arguments:
               NAMES   the names of the virtual machine
@@ -53,13 +57,42 @@ class MultipassCommand(PluginCommand):
 
                 red[0-1,5] = red0,red1,red5
 
-              cms multipass start vm1,vm2
+          Commands:
 
-                 start multiple vms
+            First you can see the supported multipass images with
 
-              WHEN YOU IMPLEMENT A FUNCTION INCLUDE MINIMAL
+                cms multipass images
+
+            Create and launch a new vm using
+
+                cms multipass create NAMES
+
+                Optionally you can provide image name, size, memory, # of cpus to create an instance.
+
+            Start one or multiple multipass vms with
+
+                cms multipass start NAMES
+
+            Stop one or multiple vms with
+
+                cms multipass stop NAMES
+
+            Reboot (stop and then start) vms with
+
+                cms multipass reboot NAMES
+
+            Delete one of multiple vms without purging with
+
+                cms multipass delete NAMES
+
+            Destory multipass vms (delete and purge) with
+
+                cms multipass destroy NAMES
+
+                Caution: Once destroyed everything in vm will be deleted and cannot be recovered.
+
+            WHEN YOU IMPLEMENT A FUNCTION INCLUDE MINIMAL
               DOCUMENTATION HERE
-
         """
         name = arguments.NAME
 
