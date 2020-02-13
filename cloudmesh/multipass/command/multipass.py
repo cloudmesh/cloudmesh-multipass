@@ -38,6 +38,7 @@ class MultipassCommand(PluginCommand):
                                        [--cloud-init=CLOUDINIT]
                                        [--dryrun]
                 multipass reboot NAMES [--dryrun]
+                multipass mount SOURCE DESTINATION [--dryrun]
 
           Interface to multipass
 
@@ -309,6 +310,18 @@ class MultipassCommand(PluginCommand):
                     provider.Print(info,
                                    kind='info',
                                    output=arguments.output))
+
+            return ""
+
+        elif arguments.mount:
+
+            if arguments.dryrun:
+                banner(f"dryrun mount {arguments.SOURCE} {arguments.DESTINATION}")
+            else:
+                provider = Provider()
+                provider.mount(arguments.SOURCE, arguments.DESTINATION)
+
+                # list the mounts and display as table
 
             return ""
 
