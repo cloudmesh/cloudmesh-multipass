@@ -470,7 +470,7 @@ class Provider(ComputeNodeABC):
         """
 
         # WRONG
-        curr_status = self._get_vm_status(name)
+        curr_status = self(name)
         if (curr_status['status'] != "Stopped"):
             os.system(f"multipass stop {name}")
 
@@ -563,12 +563,15 @@ class Provider(ComputeNodeABC):
         """
         create one node
         """
-
-        banner(f"create {name} {image}")
         #
         # TODO: shouls we not use shell.live?
         #
-        os.system(f"multipass launch --name {name} {image}")
+        if image is None:
+            command = f"multipass launch --name {name}"
+            Shell.live(command)
+        else:
+            command = f"multipass launch --name {name} {image}"
+            Shell.live(command)
 
         # Get the vm status.
         dict_result = self._get_vm_status(name)
