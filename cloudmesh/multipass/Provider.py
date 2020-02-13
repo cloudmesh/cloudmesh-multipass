@@ -164,6 +164,7 @@ class Provider(ComputeNodeABC):
         self.cloud = name
 
     # noinspection PyPep8Naming
+    # TODO: docstring
     def Print(self, data, output=None, kind=None):
 
         if output == "table":
@@ -248,6 +249,7 @@ class Provider(ComputeNodeABC):
         return d
 
     # New method to return vm status
+    # TODO: docstring
     def _get_vm_status(self, name=None) -> dict:
 
         dict_result = {}
@@ -267,6 +269,7 @@ class Provider(ComputeNodeABC):
 
         return dict_result
 
+    # TODO: docstring
     def _images(self):
         result = Shell.run("multipass find --format=json")
         result = eval(result)['images']
@@ -292,6 +295,7 @@ class Provider(ComputeNodeABC):
         result = [result[name]]
         return self.update_dict(result, kind="image")
 
+    # TODO: docstring
     def _vm(self):
         result = Shell.run("multipass list --format=json")
         result = eval(result)['list']
@@ -311,6 +315,7 @@ class Provider(ComputeNodeABC):
         return self.update_dict(result, kind="vm")
 
     # IMPLEMENT
+    # WRONG, shoudl this not use SHell.live so we can redirect and test ...
     def start(self, name=None):
         """
         start a node
@@ -330,6 +335,8 @@ class Provider(ComputeNodeABC):
 
     # IMPLEMENT
     def delete(self, name="cloudmesh", purge=False):
+        # TODO: docstring
+
         if purge:
             # terminate and purge
             os.system(f"multipass delete {name} --purge")
@@ -402,11 +409,20 @@ class Provider(ComputeNodeABC):
                 "run: executor must be cloudmesh or os, found: {executor}")
         return result
 
-    # NEW METHOD TO GET THE CONFIGURATION SETTING IN MULTIPASS
+    # IMPLEMENT, new method
+    # TODO: docstring
     def get(self, key=None):
         result = ""
         if (key != None):
             result = Shell.run(f"multipass get {key}")
+        return result
+
+    # IMPLEMENT, new method
+    # TODO: docstring
+    def set(self, key=None, value=None):
+        result = ""
+        if (key != None):
+            result = Shell.run(f"multipass set {key} {value}")
         return result
 
     # IMPLEMENT
@@ -489,6 +505,8 @@ class Provider(ComputeNodeABC):
         return self.delete(name, purge=True)
 
     # IMPLEMENT
+    # TODO: se the sample for defaults they are not idenitified
+    #  from kwargs and passed along
     def create(self,
                name=None,
                image=None,
@@ -514,6 +532,9 @@ class Provider(ComputeNodeABC):
         """
 
         banner(f"create {name} {image}")
+        #
+        # TODO: shouls we not use shell.live?
+        #
         os.system(f"multipass launch --name {name} {image}")
 
         # Get the vm status.
@@ -553,6 +574,7 @@ class Provider(ComputeNodeABC):
         raise NotImplementedError
 
     # IMPLEMENT
+    # TODO: pytest
     def rename(self, name=None, destination=None):
         """
         rename a node
@@ -561,8 +583,8 @@ class Provider(ComputeNodeABC):
         :param name: the current name
         :return: the dict with the new name
         """
-        # if destination is None, increase the name counter and use the new name
-        raise NotImplementedError
+        Console.error("Renaming an instance is not yet supported by multipass")
+        return ""
 
     # DO NOT IMPLEMENT
     def keys(self):
@@ -622,6 +644,9 @@ class Provider(ComputeNodeABC):
 
         dict_result = self.stop(name)
 
+        #
+        # TODO: we ned to list the states we have in STATUS
+        #
         if dict_result["status"] in "Stopped Suspended":
             # If the status is stopped or suspended then attempt to start.
             dict_result = self.start(name)
@@ -750,7 +775,8 @@ class Provider(ComputeNodeABC):
     def remove_rules_from_secgroup(self, name=None, rules=None):
         raise NotImplementedError
 
-    # IMPLEMENT
+    # IMPLEMENT, work with Gregor
+    # see cloudmesh-openstack already implemented there
     def wait(self,
              vm=None,
              interval=None,
@@ -763,6 +789,14 @@ class Provider(ComputeNodeABC):
         :param timeout: timeout
         :return:
         """
+        # repeatedly tries run aof a knwpn command such as uname -a and
+        # sees if it returns without error.
+        # if it reaches timeout it fails
+        # We may want to create a special static class for this as this is
+        # the same likely for all clouds.
+        # maybe just place in the ABC class or so as implemenattion so we
+        # inherit
+        # samee with ssh
         raise NotImplementedError
         return False
 
@@ -791,6 +825,7 @@ class Provider(ComputeNodeABC):
         result = self._info()
         return self.update_dict(result, kind="info")
 
+    # TODO: docstring
     def _info(self):
         result = Shell.run("multipass info --all --format=json")
         result = eval(result)['info']
