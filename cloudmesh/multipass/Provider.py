@@ -8,8 +8,16 @@ from cloudmesh.common.Shell import Shell
 from cloudmesh.common.console import Console
 from cloudmesh.common.util import banner
 
+# some of the banners will be removed.
+@ they must be used for dryrun
+# we also keep it for shell, abd create
 
-# can be installed with pip install cloudmesh-common
+# in case of create we need to look at cloudmesh-openstack as it also measures 
+# the time it takes to start the image and includes it into the cm dict
+
+# all but the shell need to return a cm dict even if the original multipass does not return one
+# for example if we delete a vom we need to return the cmdict with a stuatus and introduce a status "DELETE"
+
 
 class Provider(ComputeNodeABC):
     output = {
@@ -64,6 +72,9 @@ class Provider(ComputeNodeABC):
         },
     }
 
+    # please add a status here if there is one that you observe. WHat are all the States form multipass?
+    STATUS = ['UNKOWN'}
+              
     def __init__(self, name="multipass",
                  configuration="~/.cloudmesh/cloudmesh.yaml"):
         """
@@ -270,8 +281,10 @@ class Provider(ComputeNodeABC):
 
         :return: an array of dicts representing the nodes
         """
+
         # Already implemented by vm method
         return self.vm()
+=
 
     # IMPLEMENT
     def shell(self, name="cloudmesh"):
@@ -336,10 +349,12 @@ class Provider(ComputeNodeABC):
         :param name:
         :return: The dict representing the node including updated status
         """
+
         # WRONG
         curr_status = self._get_vm_status(name)
         if (curr_status['status'] != "Stopped"):
             os.system(f"multipass stop {name}")
+
 
         # Get the vm status.
         dict_result = self._get_vm_status(name)
@@ -354,9 +369,11 @@ class Provider(ComputeNodeABC):
         :param name:
         :return: The dict representing the node including updated status
         """
+
         result = self._info()
         result = [result[name]]
         return self.update_dict(result, kind="info")
+
 
     # IMPLEMENT
     def suspend(self, name=None):
@@ -366,7 +383,14 @@ class Provider(ComputeNodeABC):
         :param name: the name of the node
         :return: The dict representing the node
         """
-        raise NotImplementedError
+        banner(f"suspend {name}")
+        os.system(f"multipass suspend {name}")
+
+        # Get the vm status.
+        dict_result = self._get_vm_status(name)
+        #raise NotImplementedError
+
+        return dict_result
 
     # IMPLEMENT
     def resume(self, name=None):
@@ -376,7 +400,14 @@ class Provider(ComputeNodeABC):
         :param name: the name of the node
         :return: the dict of the node
         """
-        raise NotImplementedError
+        banner(f"resume {name}")
+        os.system(f"multipass start {name}")
+
+        # Get the vm status.
+        dict_result = self._get_vm_status(name)
+        return dict_result
+        # raise NotImplementedError
+        #raise NotImplementedError
 
     # IMPLEMENT
     def destroy(self, name=None):
@@ -414,8 +445,8 @@ class Provider(ComputeNodeABC):
         create one node
         """
 
-        banner(f"create {name}")
-        os.system(f"multipass launch --name {name}")
+        banner(f"create {name} {image}")
+        os.system(f"multipass launch --name {name} {image}")
 
         # Get the vm status.
         dict_result = self._get_vm_status(name)

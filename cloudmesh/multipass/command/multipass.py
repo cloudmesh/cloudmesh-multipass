@@ -27,7 +27,9 @@ class MultipassCommand(PluginCommand):
                 multipass delete NAMES [--output=OUTPUT][--dryrun]
                 multipass shell NAMES [--dryrun]
                 multipass run COMMAND NAMES [--output=OUTPUT] [--dryrun]
-                multipass info [--output=OUTPUT] [--dryrun]
+                multipass info NAMES [--output=OUTPUT] [--dryrun]
+                multipass suspend NAMES [--output=OUTPUT] [--dryrun]
+                multipass resume NAMES [--output=OUTPUT] [--dryrun]
                 multipass destroy NAMES [--dryrun]
                 multipass create NAMES [--image=IMAGE] [--size=SIZE] [--dryrun]
                 multipass reboot NAMES [--dryrun]
@@ -59,6 +61,7 @@ class MultipassCommand(PluginCommand):
                        "size",
                        "output")
 
+        image = arguments.image
         variables = Variables()
 
         arguments.output = Parameter.find("output",
@@ -119,10 +122,10 @@ class MultipassCommand(PluginCommand):
 
             for name in names:
                 if arguments.dryrun:
-                    Console.ok(f"dryrun create {name}")
+                    Console.ok(f"dryrun create {name} {image}")
                 else:
                     provider = Provider()
-                    result = provider.create(name)
+                    result = provider.create(name,image)
                     VERBOSE(result)
 
             return result
@@ -175,6 +178,58 @@ class MultipassCommand(PluginCommand):
                     provider = Provider()
                     # Default purge is false. Is this ok?
                     result = provider.delete(name)
+                    VERBOSE(result)
+
+            return result
+
+        elif arguments.info:
+
+            result = ""
+
+            if arguments.dryrun:
+                banner(f"info {name}")
+
+            for name in names:
+                if arguments.dryrun:
+                    Console.ok(f"dryrun info {name}")
+                else:
+                    provider = Provider()
+                    # Default purge is false. Is this ok?
+                    result = provider.info(name)
+                    VERBOSE(result)
+
+            return result
+
+        elif arguments.suspend:
+
+            result = ""
+
+            if arguments.dryrun:
+                banner("suspend")
+
+            for name in names:
+                if arguments.dryrun:
+                    Console.ok(f"dryrun suspend {name}")
+                else:
+                    provider = Provider()
+                    result = provider.suspend(name)
+                    VERBOSE(result)
+
+            return result
+
+        elif arguments.resume:
+
+            result = ""
+
+            if arguments.dryrun:
+                banner("resume")
+
+            for name in names:
+                if arguments.dryrun:
+                    Console.ok(f"dryrun resume {name}")
+                else:
+                    provider = Provider()
+                    result = provider.resume(name)
                     VERBOSE(result)
 
             return result

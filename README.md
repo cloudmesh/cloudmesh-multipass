@@ -17,7 +17,7 @@ see cloudmesh.cmd5
 
 Note:
 
-1. `cloudmesh-installer` must be called within the cm directory 
+1. `cloudmesh-installer` must be called within the cm directory.
 2. you must run in a python3 venv
 
 ```bash
