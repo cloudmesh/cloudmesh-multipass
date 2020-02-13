@@ -8,8 +8,16 @@ from cloudmesh.common.Shell import Shell
 from cloudmesh.common.console import Console
 from cloudmesh.common.util import banner
 
+# some of the banners will be removed.
+@ they must be used for dryrun
+# we also keep it for shell, abd create
 
-# can be installed with pip install cloudmesh-common
+# in case of create we need to look at cloudmesh-openstack as it also measures 
+# the time it takes to start the image and includes it into the cm dict
+
+# all but the shell need to return a cm dict even if the original multipass does not return one
+# for example if we delete a vom we need to return the cmdict with a stuatus and introduce a status "DELETE"
+
 
 class Provider(ComputeNodeABC):
     output = {
@@ -43,8 +51,30 @@ class Provider(ComputeNodeABC):
                        "Version",
                        "Alias"]
         },
+        "info": {
+            "sort_keys": ["cm.name"],
+            "order": ["name",
+                      "state",
+                      "images_release",
+                      "memory",
+                      "mounts",
+                      "ipv4",
+                      "release",
+                      "image_hash"],
+            "header": ["Name",
+                       "State",
+                       "Image Release",
+                       "Memory",
+                       "Mounts",
+                       "Ipv4",
+                       "Release",
+                       "Image Hash"]
+        },
     }
 
+    # please add a status here if there is one that you observe. WHat are all the States form multipass?
+    STATUS = ['UNKOWN'}
+              
     def __init__(self, name="multipass",
                  configuration="~/.cloudmesh/cloudmesh.yaml"):
         """
@@ -251,9 +281,10 @@ class Provider(ComputeNodeABC):
 
         :return: an array of dicts representing the nodes
         """
-        banner("list")
-        os.system("multipass ls")
-        print('\n')
+
+        # Already implemented by vm method
+        return self.vm()
+=
 
     # IMPLEMENT
     def shell(self, name="cloudmesh"):
@@ -303,6 +334,13 @@ class Provider(ComputeNodeABC):
                 "run: executor must be cloudmesh or os, found: {executor}")
         return result
 
+    # NEW METHOD TO GET THE CONFIGURATION SETTING IN MULTIPASS
+    def get(self, key=None):
+        result = ""
+        if (key != None):
+            result = Shell.run(f"multipass get {key}")
+        return result
+
     # IMPLEMENT
     def stop(self, name=None):
         """
@@ -311,8 +349,12 @@ class Provider(ComputeNodeABC):
         :param name:
         :return: The dict representing the node including updated status
         """
-        banner(f"stop {name}")
-        os.system(f"multipass stop {name}")
+
+        # WRONG
+        curr_status = self._get_vm_status(name)
+        if (curr_status['status'] != "Stopped"):
+            os.system(f"multipass stop {name}")
+
 
         # Get the vm status.
         dict_result = self._get_vm_status(name)
@@ -327,14 +369,11 @@ class Provider(ComputeNodeABC):
         :param name:
         :return: The dict representing the node including updated status
         """
-        banner(f"info {name}")
-        os.system(f"multipass info {name}")
 
-        # Get the vm status.
-        dict_result = self._get_vm_status(name)
+        result = self._info()
+        result = [result[name]]
+        return self.update_dict(result, kind="info")
 
-        return dict_result
-        #raise NotImplementedError
 
     # IMPLEMENT
     def suspend(self, name=None):
@@ -675,6 +714,19 @@ class Provider(ComputeNodeABC):
         raise NotImplementedError
         return ""
 
+    def info(self, **kwargs):
+        """
+        Lists the info on the cloud
+
+        :return: dict
+        """
+        result = self._info()
+        return self.update_dict(result, kind="info")
+
+    def _info(self):
+        result = Shell.run("multipass info --all --format=json")
+        result = eval(result)['info']
+        return result
 
 if __name__ == "__main__":
     # excellent-titmouse is multipass instance name

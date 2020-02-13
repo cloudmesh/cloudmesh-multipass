@@ -90,7 +90,7 @@ class MultipassCommand(PluginCommand):
             else:
 
                 provider = Provider()
-                images = provider.images()
+                images = provider.images(
 
                 print(provider.Print(images,
                                      kind='image',
@@ -281,6 +281,18 @@ class MultipassCommand(PluginCommand):
             else:
                 provider = Provider()
                 provider.shell()
+
+            return ""
+
+
+        elif arguments.info:
+
+            if arguments.dryrun:
+                banner("dryrun info")
+            else:
+                provider = Provider()
+                info = provider.info()
+                print(provider.Print(info, kind='info', output=arguments.output))
 
             return ""
 

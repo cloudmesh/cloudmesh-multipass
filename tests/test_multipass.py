@@ -13,6 +13,7 @@ from cloudmesh.multipass.Provider import Provider
 Benchmark.debug()
 
 cloud= "local"
+instance="cloudmesh-test"
 
 @pytest.mark.incremental
 class TestMultipass:
@@ -90,7 +91,57 @@ class TestMultipass:
         # find a good assertion
 
         assert "18.04" in result
+        
+    def test_cms_vm(self):
+        HEADING()
+        
+        Benchmark.Start()
+        result = Shell.execute("cms multipass vm", shell=True)
+        Benchmark.Stop()
+        VERBOSE(result)
+        
+        assert "18.04" in result
+        
+    def test_provider_vm(self):
+        HEADING()
+        
+        Benchmark.Start()
+        result = self.provider.vm()
+        Benchmark.Stop()
+        VERBOSE(result)
+        
+        assert "18.04" in result
+
+    def test_cms_shell(self):
+        HEADING()
+        
+        Benchmark.Start()
+        Shell.execute(f"cms multipass launch --name={instance}", shell=True)
+        result = Shell.execute(f"cms multipass shell {instance}", shell=True)
+        Shell.execute(f"cms multipass delete {instance}",shell=True)
+        Shell.execute(f"cms multipass purge",shell=True)
+        Benchmark.Stop()
+        VERBOSE(result)
+        
+    def test_provider_shell(self):
+        HEADING()
+        
+        Benchmark.Start()
+        Shell.execute(f"cms multipass launch --name={instance}", shell=True)
+        result = self.provider.shell(name=instance)
+        Shell.execute(f"cms multipass delete {instance}",shell=True)
+        Shell.execute(f"cms multipass purge",shell=True)
+        Benchmark.Stop()
+        VERBOSE(result)
 
     def test_benchmark(self):
         HEADING()
         Benchmark.print(csv=True, tag=cloud)
+
+    def test_info(self):
+        HEADING()
+        Benchmark.Start()
+        result = Shell.execute("cms multipass info", shell=True)
+        Benchmark.Stop()
+        VERBOSE(result)
+        assert result != None, "result cannot be null"
