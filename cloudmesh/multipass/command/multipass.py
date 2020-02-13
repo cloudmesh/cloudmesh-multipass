@@ -5,7 +5,6 @@ from cloudmesh.common.debug import VERBOSE
 from cloudmesh.common.parameter import Parameter
 from cloudmesh.common.util import banner
 from cloudmesh.common.variables import Variables
-#from cloudmesh.multipass.Provider import Provider
 from cloudmesh.multipass.Provider import Provider
 from cloudmesh.shell.command import PluginCommand
 from cloudmesh.shell.command import command
