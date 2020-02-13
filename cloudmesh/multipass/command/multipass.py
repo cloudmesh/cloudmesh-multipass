@@ -28,6 +28,7 @@ class MultipassCommand(PluginCommand):
                 multipass delete NAMES [--output=OUTPUT][--dryrun]
                 multipass shell NAMES [--dryrun]
                 multipass run COMMAND NAMES [--output=OUTPUT] [--dryrun]
+                multipass info [--output=OUTPUT] [--dryrun]
 
           Interface to multipass
 
@@ -83,7 +84,6 @@ class MultipassCommand(PluginCommand):
 
                 provider = Provider()
                 images = provider.images()
-
                 print(provider.Print(images, kind='image', output=arguments.output))
 
             return ""
@@ -162,6 +162,16 @@ class MultipassCommand(PluginCommand):
 
             return ""
 
+        elif arguments.info:
+
+            if arguments.dryrun:
+                banner("dryrun info")
+            else:
+                provider = Provider()
+                info = provider.info()
+                print(provider.Print(info, kind='info', output=arguments.output))
+
+            return ""
 
         else:
             Console.error("Not yet implemented")

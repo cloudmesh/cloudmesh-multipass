@@ -36,6 +36,25 @@ class Provider(ComputeNodeABC):
                        "Version",
                        "Alias"]
         },
+        "info": {
+            "sort_keys": ["cm.name"],
+            "order": ["name",
+                      "state",
+                      "images_release",
+                      "memory",
+                      "mounts",
+                      "ipv4",
+                      "release",
+                      "image_hash"],
+            "header": ["Name",
+                       "State",
+                       "Image Release",
+                       "Memory",
+                       "Mounts",
+                       "Ipv4",
+                       "Release",
+                       "Image Hash"]
+        },
     }
 
     def __init__(self, cloud="multipass"):
@@ -223,7 +242,9 @@ class Provider(ComputeNodeABC):
         :param name:
         :return: The dict representing the node including updated status
         """
-        raise NotImplementedError
+        result = self._info()
+        result = [result[name]]
+        return self.update_dict(result, kind="info")
 
     # IMPLEMENT
     def suspend(self, name=None):
@@ -537,6 +558,19 @@ class Provider(ComputeNodeABC):
         raise NotImplementedError
         return ""
 
+    def info(self, **kwargs):
+        """
+        Lists the info on the cloud
+
+        :return: dict
+        """
+        result = self._info()
+        return self.update_dict(result, kind="info")
+
+    def _info(self):
+        result = Shell.run("multipass info --all --format=json")
+        result = eval(result)['info']
+        return result
 
 if __name__ == "__main__":
     # excellent-titmouse is multipass instance name
