@@ -116,8 +116,10 @@ class TestMultipass:
         HEADING()
         
         Benchmark.Start()
-        Shell.execute(f"cms multipass launch -n {instance}", shell=True)
+        Shell.execute(f"cms multipass launch --name={instance}", shell=True)
         result = Shell.execute(f"cms multipass shell {instance}", shell=True)
+        Shell.execute(f"cms multipass delete {instance}",shell=True)
+        Shell.execute(f"cms multipass purge",shell=True)
         Benchmark.Stop()
         VERBOSE(result)
         
@@ -125,8 +127,10 @@ class TestMultipass:
         HEADING()
         
         Benchmark.Start()
-        Shell.execute(f"cms multipass launch -n {instance}", shell=True)
+        Shell.execute(f"cms multipass launch --name={instance}", shell=True)
         result = self.provider.shell(name=instance)
+        Shell.execute(f"cms multipass delete {instance}",shell=True)
+        Shell.execute(f"cms multipass purge",shell=True)
         Benchmark.Stop()
         VERBOSE(result)
 
