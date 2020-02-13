@@ -302,6 +302,13 @@ class Provider(ComputeNodeABC):
                 "run: executor must be cloudmesh or os, found: {executor}")
         return result
 
+    # NEW METHOD TO GET THE CONFIGURATION SETTING IN MULTIPASS
+    def get(self, key=None):
+        result = ""
+        if (key != None):
+            result = Shell.run(f"multipass get {key}")
+        return result
+
     # IMPLEMENT
     def stop(self, name=None):
         """
