@@ -11,7 +11,74 @@ from cloudmesh.common.util import banner
 
 # can be installed with pip install cloudmesh-common
 
+"""
+
+from the launch documentation to derive sample. This will be used to create the
+manual page for cms multipass. The sample in the provider will be used for the
+cms register command which is defined in cloudmesh-cloud so you can add
+multipass to your yaml fie.
+
+
+Options:
+  -h, --help           Display this help
+  -v, --verbose        Increase logging verbosity, repeat up to three times for
+                       more detail
+  -c, --cpus <cpus>    Number of CPUs to allocate.
+                       Minimum: 1, default: 1.
+  -d, --disk <disk>    Disk space to allocate. Positive integers, in bytes, or
+                       with K, M, G suffix.
+                       Minimum: 512M, default: 5G.
+  -m, --mem <mem>      Amount of memory to allocate. Positive integers, in
+                       bytes, or with K, M, G suffix.
+                       Minimum: 128M, default: 1G.
+  -n, --name <name>    Name for the instance. If it is 'primary' (the
+                       configured primary instance name), the user's home
+                       directory is mounted inside the newly launched instance,
+                       in 'Home'.
+  --cloud-init <file>  Path to a user-data cloud-init configuration, or '-' for
+                       stdin
+
+Arguments:
+  image                Optional image to launch. If omitted, then the default
+                       Ubuntu LTS will be used.
+                       <remote> can be either ‘release’ or ‘daily‘. If <remote>
+                       is omitted, ‘release’ will be used.
+                       <image> can be a partial image hash or an Ubuntu release
+                       version, codename or alias.
+                       <url> is a custom image URL that is in http://, https://,
+                       or file:// format.
+                       
+Gregor: interesting is the file:// and http(s):// we shoudl try if we can do 19.10 on 
+  osx and windows
+"""
+
 class Provider(ComputeNodeABC):
+    kind = "multipass"
+
+    sample = """
+    cloudmesh:
+      cloud:
+        {name}:
+          cm:
+            active: true
+            heading: {name}
+            host: TBD
+            label: {name}
+            kind: multipass
+            version: TBD
+            service: compute
+          credentials:
+            username: TBD
+            key_path: ~/.ssh/id_rsa.pub
+          default:
+            size: m1.medium
+            image: 18.04
+            cpu: 1
+            disk: 5G
+            mem: 1GB
+            @ cloudinit: file:// ... or http:// 
+    """
+
     output = {
         "vm": {
             "sort_keys": ["cm.name"],

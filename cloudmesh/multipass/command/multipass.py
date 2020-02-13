@@ -11,6 +11,7 @@ from cloudmesh.shell.command import command
 from cloudmesh.shell.command import map_parameters
 
 
+
 class MultipassCommand(PluginCommand):
 
     # noinspection PyUnusedLocal
@@ -28,7 +29,12 @@ class MultipassCommand(PluginCommand):
                 multipass shell NAMES [--dryrun]
                 multipass run COMMAND NAMES [--output=OUTPUT] [--dryrun]
                 multipass destroy NAMES [--dryrun]
-                multipass create NAMES [--image=IMAGE] [--size=SIZE] [--dryrun]
+                multipass create NAMES [--image=IMAGE]
+                                       [--size=SIZE]
+                                       [--mem=MEMORY]
+                                       [--cpus=CPUS]
+                                       [--cloud-init=CLOUDINIT]
+                                       [--dryrun]
                 multipass reboot NAMES [--dryrun]
 
           Interface to multipass
@@ -41,11 +47,16 @@ class MultipassCommand(PluginCommand):
 
           Description:
 
+              The NAMES can be a parameterized hostname such as
+
+                red[0-1,5] = red0,red1,red5
+
               cms multipass start vm1,vm2
 
                  start multiple vms
 
-              The NAMES can be a parameterized hostname
+              WHEN YOU IMPLEMENT A FUNCTION INCLUDE MINIMAL
+              DOCUMENTATION HERE
 
         """
         name = arguments.NAME
@@ -56,7 +67,11 @@ class MultipassCommand(PluginCommand):
                        "cloud",
                        "image",
                        "size",
+                       "mem",
+                       "cpus",
                        "output")
+        # so we can use arguments.cloudinit
+        arguments["cloudinit"] = arguments["--cloud-init"]
 
         variables = Variables()
 
