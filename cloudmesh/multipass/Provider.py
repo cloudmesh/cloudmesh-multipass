@@ -273,9 +273,16 @@ class Provider(ComputeNodeABC):
 
         return dict_result
 
-    # TODO: docstring
     def _images(self):
+        """
+        internal method that returns a native multipass dict of the images.
+
+        :return: dict of images in multipass format
+        """
         result = Shell.run("multipass find --format=json")
+        #
+        # TODO: relpace with json.loads
+        #
         result = eval(result)['images']
         return result
 
@@ -299,9 +306,16 @@ class Provider(ComputeNodeABC):
         result = [result[name]]
         return self.update_dict(result, kind="image")
 
-    # TODO: docstring
     def _vm(self):
+        """
+        internal method that returns the dict of all vms
+
+        :return: dict of vms in multipass format
+        """
         result = Shell.run("multipass list --format=json")
+        #
+        # TODO: relpace with json.loads
+        #
         result = eval(result)['list']
         result_new_dict = {}
         for i in range(len(result)):
@@ -339,7 +353,13 @@ class Provider(ComputeNodeABC):
 
     # IMPLEMENT
     def delete(self, name="cloudmesh", purge=False):
-        # TODO: docstring
+        """
+        Deletes the names instance
+
+        :param name: The name
+        :param purge: if set to tru also purges the instance
+        :return: the dict of the deleted vm
+        """
 
         if purge:
             # terminate and purge
@@ -415,14 +435,26 @@ class Provider(ComputeNodeABC):
     # IMPLEMENT, new method
     # TODO: docstring
     def get(self, key=None):
+        """
+        returns the variable with the given key name from multipass
+
+        :param key: the key name
+        :return:
+        """
         result = ""
         if (key is not None):
             result = Shell.run(f"multipass get {key}")
         return result
 
     # IMPLEMENT, new method
-    # TODO: docstring
     def set(self, key=None, value=None):
+        """
+        sets the multipass variable with the kename to value
+
+        :param key: the name of the key
+        :param value: the value to be set
+        :return:
+        """
         result = ""
         if (key is not None):
             result = Shell.run(f"multipass set {key} {value}")
@@ -826,9 +858,17 @@ class Provider(ComputeNodeABC):
         result = self._info()
         return self.update_dict(result, kind="info")
 
-    # TODO: docstring
     def _info(self):
+        """
+        an internal method that returns the info of all instances as a dict in
+        multipass
+
+        :return: dict of all instances in multipass
+        """
         result = Shell.run("multipass info --all --format=json")
+        #
+        # TODO: relpace with json.loads
+        #
         result = eval(result)['info']
         return result
 
