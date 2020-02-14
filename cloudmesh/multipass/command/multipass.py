@@ -6,6 +6,7 @@ from cloudmesh.common.parameter import Parameter
 from cloudmesh.common.util import banner
 from cloudmesh.common.variables import Variables
 from cloudmesh.multipass.Provider import Provider
+from cloudmesh.multipass.Deploy import Deploy
 from cloudmesh.shell.command import PluginCommand
 from cloudmesh.shell.command import command
 from cloudmesh.shell.command import map_parameters
@@ -43,6 +44,7 @@ class MultipassCommand(PluginCommand):
                 multipass transfer SOURCE DESTINATION [--dryrun]
                 multipass set key=VALUE [--dryrun]
                 multipass get [key] [--dryrun]
+                multipass deploy [--dryrun]
 
           Interface to multipass
 
@@ -342,6 +344,11 @@ class MultipassCommand(PluginCommand):
                 # list the mounts and display as table
 
             return ""
+
+        elif arguments.deploy:
+            provider = Deploy(dryrun=arguments.dryrun)
+            provider.install()
+
 
         else:
             Console.error("Not yet implemented")
