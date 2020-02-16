@@ -64,7 +64,7 @@ class MultipassCommand(PluginCommand):
                --mem=MEMORY         Amount of memory to allocate. Positive integers, in bytes, or with K, M, G suffix.
                                     Minimum: 128M, default: 1G.
 
-               --cloud-init=file    Path to a user-data cloud-init configuration
+               --cloud-init=FILE    Path to a user-data cloud-init configuration
 
           Arguments:
               NAMES   the names of the virtual machine
