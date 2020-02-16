@@ -1,7 +1,7 @@
 ###############################################################
 # pytest -v --capture=no tests/test_multipass.py
 # pytest -v  tests/test_multipass.py
-# pytest -v --capture=no  tests/test_multipass.py:Test_Multipass.<METHODNAME>
+# pytest -v --capture=no  tests/test_multipass.py::Test_Multipass::<METHODNAME>
 ###############################################################
 import pytest
 from cloudmesh.common.Shell import Shell
@@ -17,6 +17,8 @@ instance="cloudmesh-test"
 
 @pytest.mark.incremental
 class TestMultipass:
+
+    vm_name_prefix = "cloudmeshvm" #Note: multipass does not allow - or _ in vm name.
 
     def test_cms_help(self):
         HEADING()
@@ -144,3 +146,172 @@ class TestMultipass:
         Benchmark.Stop()
         VERBOSE(result)
         assert result != None, "result cannot be null"
+
+    def test_create(self):
+        HEADING()
+        vm_name = f"{self.vm_name_prefix}1"
+
+        Benchmark.Start()
+        result = Shell.execute(f"cms multipass create {vm_name}", shell=True)
+        Benchmark.Stop()
+
+        VERBOSE(result)
+
+        assert f'Launched: {vm_name}' in result, "Error creating instance"
+
+    def test_provider_create(self):
+        HEADING()
+
+        vm_name = f"{self.vm_name_prefix}2"
+
+        provider = Provider(vm_name)
+
+        Benchmark.Start()
+        result = provider.create(vm_name)
+        Benchmark.Stop()
+        VERBOSE(result)
+
+        assert 'Running' in result['status'], "Error creating instance"
+
+    def test_create_with_options(self):
+        HEADING()
+
+        vm_name = f"{self.vm_name_prefix}3"
+
+        Benchmark.Start()
+        result = Shell.execute(f"cms multipass create {vm_name} --cpus=2 --size=3G --image=bionic --mem=1G", shell=True)
+        Benchmark.Stop()
+        VERBOSE(result)
+
+        assert f'Launched: {vm_name}' in result, "Error creating instance"
+
+    def test_stop(self):
+        HEADING()
+        #Using 2 VMs to test_created usingn test_create* methods.
+        vm_names = f"{self.vm_name_prefix}1,{self.vm_name_prefix}3"
+
+        Benchmark.Start()
+        result = Shell.execute(f"cms multipass stop {vm_names}", shell=True)
+        Benchmark.Stop()
+
+        VERBOSE(result)
+
+        assert 'Stopped' in result, "Error stopping instance"
+
+    def test_provider_stop(self):
+        HEADING()
+        vm_name = f"{self.vm_name_prefix}2"
+        provider = Provider(vm_name)
+
+        Benchmark.Start()
+        result = provider.stop(vm_name)
+        Benchmark.Stop()
+
+        VERBOSE(result)
+
+        assert 'Stopped' in result['status'], "Error stopping instance"
+
+    def test_start(self):
+        HEADING()
+        #Using 2 VMs to test_created usingn test_create* methods.
+        vm_names = f"{self.vm_name_prefix}1,{self.vm_name_prefix}3"
+
+        Benchmark.Start()
+        result = Shell.execute(f"cms multipass start {vm_names}", shell=True)
+        Benchmark.Stop()
+
+        VERBOSE(result)
+
+        assert 'Running' in result, "Error starting instance"
+
+    def test_provider_start(self):
+        HEADING()
+        vm_name = f"{self.vm_name_prefix}2"
+        provider = Provider(vm_name)
+
+        Benchmark.Start()
+        result = provider.start(vm_name)
+        Benchmark.Stop()
+
+        VERBOSE(result)
+
+        assert 'Running' in result['status'], "Error starting instance"
+
+    def test_reboot(self):
+        HEADING()
+        #Using 2 VMs to test_created usingn test_create* methods.
+        vm_names = f"{self.vm_name_prefix}1,{self.vm_name_prefix}3"
+
+        Benchmark.Start()
+        result = Shell.execute(f"cms multipass reboot {vm_names}", shell=True)
+        Benchmark.Stop()
+
+        VERBOSE(result)
+
+        assert 'Running' in result, "Error rebooting instance"
+
+    def test_provider_reboot(self):
+        HEADING()
+        vm_name = f"{self.vm_name_prefix}2"
+        provider = Provider(vm_name)
+
+        Benchmark.Start()
+        result = provider.reboot(vm_name)
+        Benchmark.Stop()
+
+        VERBOSE(result)
+
+        assert 'Running' in result['status'], "Error rebooting instance"
+
+
+    def test_delete(self):
+        HEADING()
+        #Using 2 VMs to test_created usingn test_create* methods.
+        vm_names = f"{self.vm_name_prefix}1,{self.vm_name_prefix}3"
+
+        Benchmark.Start()
+        result = Shell.execute(f"cms multipass delete {vm_names}", shell=True)
+        Benchmark.Stop()
+
+        VERBOSE(result)
+
+        assert 'deleted' in result, "Error deleting instance"
+
+    def test_provider_delete(self):
+        HEADING()
+        vm_name = f"{self.vm_name_prefix}2"
+        provider = Provider(vm_name)
+
+        Benchmark.Start()
+        result = provider.delete(vm_name)
+        Benchmark.Stop()
+
+        VERBOSE(result)
+
+        assert 'deleted' in result['status'], "Error deleting instance"
+
+    def test_destroy(self):
+        HEADING()
+        #Using 2 VMs to test_created usingn test_create* methods.
+        vm_names = f"{self.vm_name_prefix}1,{self.vm_name_prefix}3"
+
+        Benchmark.Start()
+        result = Shell.execute(f"cms multipass destroy {vm_names}", shell=True)
+        Benchmark.Stop()
+
+        VERBOSE(result)
+
+        assert 'destroyed' in result, "Error destroying instance"
+
+    def test_provider_destroy(self):
+        HEADING()
+        vm_name = f"{self.vm_name_prefix}2"
+        provider = Provider(vm_name)
+
+        Benchmark.Start()
+        result = provider.destroy(vm_name)
+        Benchmark.Stop()
+
+        VERBOSE(result)
+
+        assert 'destroyed' in result['status'], "Error destroying instance"

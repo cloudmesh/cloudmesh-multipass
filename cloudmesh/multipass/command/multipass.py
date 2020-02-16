@@ -38,7 +38,7 @@ class MultipassCommand(PluginCommand):
                                        [--size=SIZE]
                                        [--mem=MEMORY]
                                        [--cpus=CPUS]
-                                       [--cloud-init=CLOUDINIT]
+                                       [--cloud-init=FILE]
                                        [--dryrun]
                 multipass reboot NAMES [--dryrun]
                 multipass mount SOURCE DESTINATION [--dryrun]
@@ -51,9 +51,20 @@ class MultipassCommand(PluginCommand):
           Interface to multipass
 
           Options:
-               --output=OUTPUT  the output format [default: table]. Other values are yaml, csv and json.
+               --output=OUTPUT      the output format [default: table]. Other values are yaml, csv and json.
 
-               --image=IMAGE    the image name to be used to create a VM.
+               --image=IMAGE        the image name to be used to create a VM.
+
+               --cpus=CPUS          Number of CPUs to allocate.
+                                    Minimum: 1, default: 1.
+
+               --size=SIZE          Disk space to allocate. Positive integers, in bytes, or with K, M, G suffix.
+                                    Minimum: 512M, default: 5G.
+
+               --mem=MEMORY         Amount of memory to allocate. Positive integers, in bytes, or with K, M, G suffix.
+                                    Minimum: 128M, default: 1G.
+
+               --cloud-init=FILE    Path to a user-data cloud-init configuration
 
           Arguments:
               NAMES   the names of the virtual machine
@@ -127,6 +138,7 @@ class MultipassCommand(PluginCommand):
                        "size",
                        "mem",
                        "cpus",
+                       "cloud-init",
                        "output")
         # so we can use arguments.cloudinit
         arguments["cloudinit"] = arguments["--cloud-init"]
@@ -190,12 +202,16 @@ class MultipassCommand(PluginCommand):
             if arguments.dryrun:
                 banner("create")
 
+            timeout = 360
+            group = None
+            kwargs = {"cloud_init": arguments.cloud_init, "cpus": arguments.cpus, "memory": arguments.mem}
+
             for name in names:
                 if arguments.dryrun:
                     Console.ok(f"dryrun create {name} {image}")
                 else:
                     provider = Provider()
-                    result = provider.create(name, image)
+                    result = provider.create(name, image, arguments.size, timeout, group, **kwargs)
                     VERBOSE(result)
 
             return result

@@ -7,6 +7,8 @@ from cloudmesh.common.Printer import Printer
 from cloudmesh.common.Shell import Shell
 from cloudmesh.common.console import Console
 from cloudmesh.common.util import banner
+from cloudmesh.common.dotdict import dotdict
+
 
 # some of the banners will be removed.
 # they must be used for dryrun
@@ -372,8 +374,8 @@ class Provider(ComputeNodeABC):
         """
 
         banner(f"start {name}")
-        os.system(f"multipass start {name}")
-        print('\n')
+
+        Shell.live(f"multipass start {name}")
 
         # Get the vm status.
         dict_result = self._get_vm_status(name)
@@ -390,15 +392,19 @@ class Provider(ComputeNodeABC):
         :return: the dict of the deleted vm
         """
 
+        banner(f"delete {name}")
+
         if purge:
             # terminate and purge
-            os.system(f"multipass delete {name} --purge")
+            result = Shell.live(f"multipass delete {name} --purge")
+            dict_result = {"name": name, "status": "Instance destroyed (deleted and purged)"}
         else:
             # terminate only
-            os.system(f"multipass delete {name}")
+            result = Shell.live(f"multipass delete {name}")
+            dict_result = {"name": name, "status": "Instance deleted"}
 
-        # Get the vm status.
-        dict_result = self._get_vm_status(name)
+        if result['status'] != 0:
+            dict_result = {"name": name, "status": "Error when deleting/destroying instance"}
 
         return dict_result
 
@@ -493,17 +499,19 @@ class Provider(ComputeNodeABC):
         """
         stops the node with the given name
 
-        :param name:
+        :param name of the instance to stop
         :return: The dict representing the node including updated status
         """
+        banner(f"stop {name}")
 
         # WRONG
-        curr_status = self._get_vm_status(name)
-        if (curr_status['status'] != "Stopped"):
-            os.system(f"multipass stop {name}")
-
-        # Get the vm status.
         dict_result = self._get_vm_status(name)
+        if (dict_result['status'] != "Stopped"):
+            Shell.live(f"multipass stop {name}")
+            # Get the vm status.
+            dict_result = self._get_vm_status(name)
+        else:
+            dict_result['status'] = f"{name} is already stopped"
 
         return dict_result
 
@@ -589,11 +597,33 @@ class Provider(ComputeNodeABC):
         create one node
         """
 
-        banner(f"create {name} {image}")
-        #
-        # TODO: shouls we not use shell.live?
-        #
-        os.system(f"multipass launch --name {name} {image}")
+        banner(f"create {name} using image {image}")
+
+        arguments = dotdict(kwargs)
+        memory = arguments.memory
+        cpu = arguments.cpus
+        disk = arguments.disk
+        cloud_init = arguments.cloud_init
+
+        command = f"multipass launch --name {name}"
+
+        # Add options to create command
+        if cpu is not None:
+            command = f"{command} --cpus {cpu}"
+
+        if memory is not None:
+            command = f"{command} --mem {memory}"
+
+        if size is not None:
+            command = f"{command} --disk {size}"
+
+        if cloud_init is not None:
+            command = f"{command} --cloud-init {cloud_init}"
+
+        if image is not None:
+            command = f"{command} {image}"
+
+        result = Shell.live(command, )
 
         # Get the vm status.
         dict_result = self._get_vm_status(name)
@@ -694,23 +724,15 @@ class Provider(ComputeNodeABC):
         """
         Reboot a list of nodes with the given names
 
-        :param name: A list of node names
+        :param name: name of instance to reboot
         :return:  A list of dict representing the nodes
         """
 
         banner(f"reboot {name}")
 
-        dict_result = self.stop(name)
+        Shell.live(f"multipass restart {name}")
 
-        #
-        # TODO: we ned to list the states we have in STATUS
-        #
-        if dict_result["status"] in "Stopped Suspended":
-            # If the status is stopped or suspended then attempt to start.
-            dict_result = self.start(name)
-        else:
-            # Something wrong..
-            dict_result["status"] = "Error when stopping instance"
+        dict_result = self._get_vm_status(name)
 
         return dict_result
 
