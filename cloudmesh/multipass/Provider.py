@@ -9,7 +9,6 @@ from cloudmesh.common.console import Console
 from cloudmesh.common.util import banner
 from cloudmesh.common.dotdict import dotdict
 
-
 # some of the banners will be removed.
 # they must be used for dryrun
 # we also keep it for shell, abd create
@@ -64,7 +63,6 @@ Gregor: interesting is the file:// and http(s):// we shoudl try if we can
   osx and windows
 """
 
-
 # multipass mount
 # multipass transfer
 
@@ -91,7 +89,6 @@ Gregor: interesting is the file:// and http(s):// we shoudl try if we can
   version   Show version details
 
 """
-
 
 
 class Provider(ComputeNodeABC):
@@ -397,14 +394,16 @@ class Provider(ComputeNodeABC):
         if purge:
             # terminate and purge
             result = Shell.live(f"multipass delete {name} --purge")
-            dict_result = {"name": name, "status": "Instance destroyed (deleted and purged)"}
+            dict_result = {"name": name,
+                           "status": "Instance destroyed (deleted and purged)"}
         else:
             # terminate only
             result = Shell.live(f"multipass delete {name}")
             dict_result = {"name": name, "status": "Instance deleted"}
 
         if result['status'] != 0:
-            dict_result = {"name": name, "status": "Error when deleting/destroying instance"}
+            dict_result = {"name": name,
+                           "status": "Error when deleting/destroying instance"}
 
         return dict_result
 
@@ -476,7 +475,7 @@ class Provider(ComputeNodeABC):
         :return:
         """
         result = ""
-        if (key is not None):
+        if key is not None:
             result = Shell.run(f"multipass get {key}")
         return result
 
@@ -609,21 +608,21 @@ class Provider(ComputeNodeABC):
 
         # Add options to create command
         if cpu is not None:
-            command = f"{command} --cpus {cpu}"
+            command = command + f" --cpus {cpu}"
 
         if memory is not None:
-            command = f"{command} --mem {memory}"
+            command = command + f" --mem {memory}"
 
         if size is not None:
-            command = f"{command} --disk {size}"
+            command = command + f" --disk {size}"
 
         if cloud_init is not None:
-            command = f"{command} --cloud-init {cloud_init}"
+            command = command + f" --cloud-init {cloud_init}"
 
         if image is not None:
             command = f"{command} {image}"
 
-        result = Shell.live(command, )
+        result = Shell.live(command, )  # ?
 
         # Get the vm status.
         dict_result = self._get_vm_status(name)
@@ -928,7 +927,8 @@ class Provider(ComputeNodeABC):
         """
         result = ""
         if (source is not None) and (source is not None) and (name is not None):
-            result = Shell.run(f"multipass mount --name={name} {source} {destination}")
+            result = Shell.run(
+                f"multipass mount --name={name} {source} {destination}")
         else:
             Console.error("make sure to specify all attributes")
             return ""
@@ -967,8 +967,6 @@ class Provider(ComputeNodeABC):
             return ""
         # TODO: this should return the newly mounted volume as cloudmesh json
         return result
-
-
 
 
 if __name__ == "__main__":
