@@ -21,11 +21,15 @@ class MultipassCommand(PluginCommand):
         ::
 
           Usage:
+                multipass deploy [--dryrun]
                 multipass list [--output=OUTPUT] [--dryrun]
                 multipass images [--output=OUTPUT] [--dryrun]
-                multipass start NAMES [--output=OUTPUT] [--dryrun]
-                multipass stop NAMES [--output=OUTPUT] [--dryrun]
-                multipass reboot NAMES [--output=OUTPUT] [--dryrun]
+                multipass create NAMES [--image=IMAGE]
+                                       [--size=SIZE]
+                                       [--mem=MEMORY]
+                                       [--cpus=CPUS]
+                                       [--cloud-init=FILE]
+                                       [--dryrun]
                 multipass delete NAMES [--output=OUTPUT][--dryrun]
                 multipass destroy NAMES [--output=OUTPUT][--dryrun]
                 multipass shell NAMES [--dryrun]
@@ -33,20 +37,14 @@ class MultipassCommand(PluginCommand):
                 multipass info NAMES [--output=OUTPUT] [--dryrun]
                 multipass suspend NAMES [--output=OUTPUT] [--dryrun]
                 multipass resume NAMES [--output=OUTPUT] [--dryrun]
-                multipass destroy NAMES [--dryrun]
-                multipass create NAMES [--image=IMAGE]
-                                       [--size=SIZE]
-                                       [--mem=MEMORY]
-                                       [--cpus=CPUS]
-                                       [--cloud-init=FILE]
-                                       [--dryrun]
-                multipass reboot NAMES [--dryrun]
+                multipass start NAMES [--output=OUTPUT] [--dryrun]
+                multipass stop NAMES [--output=OUTPUT] [--dryrun]
+                multipass reboot NAMES [--output=OUTPUT] [--dryrun]
                 multipass mount SOURCE DESTINATION [--dryrun]
                 multipass umount SOURCE [--dryrun]
                 multipass transfer SOURCE DESTINATION [--dryrun]
                 multipass set key=VALUE [--dryrun]
                 multipass get [key] [--dryrun]
-                multipass deploy [--dryrun]
 
           Interface to multipass
 

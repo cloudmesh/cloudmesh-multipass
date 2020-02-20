@@ -361,7 +361,7 @@ class Provider(ComputeNodeABC):
         return self.update_dict(result, kind="vm")
 
     # IMPLEMENT
-    # WRONG, shoudl this not use SHell.live so we can redirect and test ...
+    # WRONG, shoudl this not use Shell.live so we can redirect and test ...
     def start(self, name=None):
         """
         start a node
@@ -372,15 +372,21 @@ class Provider(ComputeNodeABC):
 
         banner(f"start {name}")
 
-        Shell.live(f"multipass start {name}")
+        #
+        # bug should test if the name is there and if it can be started
+        #
+
+        #Shell.live(f"multipass start {name}")
+
+        os.system(f"multipass start {name}")
 
         # Get the vm status.
         dict_result = self._get_vm_status(name)
 
         return dict_result
 
-    # IMPLEMENT
-    def delete(self, name="cloudmesh", purge=False):
+    # IMPLEMENT, POSSIBLE BUG wilth live
+    def delete(self, name="cloudmesh", purge=True):
         """
         Deletes the names instance
 
@@ -391,19 +397,28 @@ class Provider(ComputeNodeABC):
 
         banner(f"delete {name}")
 
+        #
+        # bug should test if the name is there
+        #
+        dict_result = None
         if purge:
             # terminate and purge
-            result = Shell.live(f"multipass delete {name} --purge")
+            # result = Shell.live(f"multipass delete {name} --purge")
+            os.system(f"multipass delete {name} --purge")
+
             dict_result = {"name": name,
                            "status": "Instance destroyed (deleted and purged)"}
         else:
             # terminate only
-            result = Shell.live(f"multipass delete {name}")
+            #result = Shell.live(f"multipass delete {name}")
+            os.system(f"multipass delete {name}")
+
             dict_result = {"name": name, "status": "Instance deleted"}
 
-        if result['status'] != 0:
-            dict_result = {"name": name,
-                           "status": "Error when deleting/destroying instance"}
+        # BUG
+        # if result['status'] != 0:
+        #    dict_result = {"name": name,
+        #                   "status": "Error when deleting/destroying instance"}
 
         return dict_result
 
@@ -431,7 +446,7 @@ class Provider(ComputeNodeABC):
         print("\n")
         return ""
 
-    # IMPLEMENT
+    # IMPLEMENT, POSSIBLE BUG wilth live
     def run(self, name="cloudmesh", command=None, executor="buffer"):
         """
         executes a command in a named multipass instance
@@ -493,7 +508,7 @@ class Provider(ComputeNodeABC):
             result = Shell.run(f"multipass set {key} {value}")
         return result
 
-    # IMPLEMENT
+    # IMPLEMENT, POSSIBLE BUG wilth live
     def stop(self, name=None):
         """
         stops the node with the given name
@@ -506,7 +521,9 @@ class Provider(ComputeNodeABC):
         # WRONG
         dict_result = self._get_vm_status(name)
         if (dict_result['status'] != "Stopped"):
-            Shell.live(f"multipass stop {name}")
+            # Shell.live(f"multipass stop {name}")
+            os.system(f"multipass stop {name}")
+
             # Get the vm status.
             dict_result = self._get_vm_status(name)
         else:
@@ -622,7 +639,8 @@ class Provider(ComputeNodeABC):
         if image is not None:
             command = f"{command} {image}"
 
-        result = Shell.live(command, )  # ?
+        # result = Shell.live(command, )  # ?
+        os.system(command)
 
         # Get the vm status.
         dict_result = self._get_vm_status(name)
@@ -718,7 +736,7 @@ class Provider(ComputeNodeABC):
         """
         raise NotImplementedError
 
-    # IMPLEMENT
+    # IMPLEMENT, POSSIBLE BUG wilth live
     def reboot(self, name=None):
         """
         Reboot a list of nodes with the given names
@@ -729,7 +747,8 @@ class Provider(ComputeNodeABC):
 
         banner(f"reboot {name}")
 
-        Shell.live(f"multipass restart {name}")
+        # Shell.live(f"multipass restart {name}")
+        os.system(f"multipass restart {name}")
 
         dict_result = self._get_vm_status(name)
 
