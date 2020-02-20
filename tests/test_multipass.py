@@ -30,6 +30,7 @@ class TestMultipass:
 
         assert "quit" in result
         assert "clear" in result
+        Benchmark.Status(True)
 
     def test_cms_images(self):
         HEADING()
@@ -39,6 +40,7 @@ class TestMultipass:
         VERBOSE(result)
 
         assert "18.04" in result
+        Benchmark.Status(True)
 
     def test_provider_init(self):
         HEADING()
@@ -46,6 +48,7 @@ class TestMultipass:
         self.provider = Provider()
         Benchmark.Stop()
         assert True
+        Benchmark.Status(True)
 
     def test_provider_images(self):
         HEADING()
@@ -56,6 +59,7 @@ class TestMultipass:
         VERBOSE(result)
 
         assert "18.04" in result
+        Benchmark.Status(True)
 
     def test_provider_run_os(self):
         HEADING()
@@ -68,6 +72,7 @@ class TestMultipass:
         # find a good assertion
 
         assert "18.04" in result
+        Benchmark.Status(True)
 
     def test_provider_run_live(self):
         HEADING()
@@ -80,6 +85,7 @@ class TestMultipass:
         # find a good assertion
 
         assert "18.04" in result
+        Benchmark.Status(True)
 
     def test_provider_run_buffer(self):
         HEADING()
@@ -92,7 +98,8 @@ class TestMultipass:
         # find a good assertion
 
         assert "18.04" in result
-        
+        Benchmark.Status(True)
+
     def test_cms_vm(self):
         HEADING()
         
@@ -102,7 +109,8 @@ class TestMultipass:
         VERBOSE(result)
         
         assert "18.04" in result
-        
+        Benchmark.Status(True)
+
     def test_provider_vm(self):
         HEADING()
         
@@ -112,6 +120,7 @@ class TestMultipass:
         VERBOSE(result)
         
         assert "18.04" in result
+        Benchmark.Status(True)
 
     def test_cms_shell(self):
         HEADING()
@@ -123,7 +132,9 @@ class TestMultipass:
         Shell.execute(f"cms multipass purge",shell=True)
         Benchmark.Stop()
         VERBOSE(result)
-        
+        # assertion missing
+        Benchmark.Status(True)
+
     def test_provider_shell(self):
         HEADING()
         
@@ -134,6 +145,8 @@ class TestMultipass:
         Shell.execute(f"cms multipass purge",shell=True)
         Benchmark.Stop()
         VERBOSE(result)
+        # assertion missing
+        Benchmark.Status(True)
 
     def test_benchmark(self):
         HEADING()
@@ -146,6 +159,7 @@ class TestMultipass:
         Benchmark.Stop()
         VERBOSE(result)
         assert result != None, "result cannot be null"
+        Benchmark.Status(True)
 
     def test_create(self):
         HEADING()
@@ -158,6 +172,7 @@ class TestMultipass:
         VERBOSE(result)
 
         assert f'Launched: {vm_name}' in result, "Error creating instance"
+        Benchmark.Status(True)
 
     def test_provider_create(self):
         HEADING()
@@ -172,6 +187,8 @@ class TestMultipass:
         VERBOSE(result)
 
         assert 'Running' in result['status'], "Error creating instance"
+        Benchmark.Status(True)
+
 
     def test_create_with_options(self):
         HEADING()
@@ -184,6 +201,7 @@ class TestMultipass:
         VERBOSE(result)
 
         assert f'Launched: {vm_name}' in result, "Error creating instance"
+        Benchmark.Status(True)
 
     def test_stop(self):
         HEADING()
@@ -197,6 +215,7 @@ class TestMultipass:
         VERBOSE(result)
 
         assert 'Stopped' in result, "Error stopping instance"
+        Benchmark.Status(True)
 
     def test_provider_stop(self):
         HEADING()
@@ -210,6 +229,7 @@ class TestMultipass:
         VERBOSE(result)
 
         assert 'Stopped' in result['status'], "Error stopping instance"
+        Benchmark.Status(True)
 
     def test_start(self):
         HEADING()
@@ -223,6 +243,7 @@ class TestMultipass:
         VERBOSE(result)
 
         assert 'Running' in result, "Error starting instance"
+        Benchmark.Status(True)
 
     def test_provider_start(self):
         HEADING()
@@ -236,6 +257,7 @@ class TestMultipass:
         VERBOSE(result)
 
         assert 'Running' in result['status'], "Error starting instance"
+        Benchmark.Status(True)
 
     def test_reboot(self):
         HEADING()
@@ -262,7 +284,7 @@ class TestMultipass:
         VERBOSE(result)
 
         assert 'Running' in result['status'], "Error rebooting instance"
-
+        Benchmark.Status(True)
 
     def test_delete(self):
         HEADING()
@@ -276,6 +298,7 @@ class TestMultipass:
         VERBOSE(result)
 
         assert 'deleted' in result, "Error deleting instance"
+        Benchmark.Status(True)
 
     def test_provider_delete(self):
         HEADING()
@@ -289,6 +312,7 @@ class TestMultipass:
         VERBOSE(result)
 
         assert 'deleted' in result['status'], "Error deleting instance"
+        Benchmark.Status(True)
 
     def test_destroy(self):
         HEADING()
@@ -302,6 +326,7 @@ class TestMultipass:
         VERBOSE(result)
 
         assert 'destroyed' in result, "Error destroying instance"
+        Benchmark.Status(True)
 
     def test_provider_destroy(self):
         HEADING()
@@ -315,3 +340,4 @@ class TestMultipass:
         VERBOSE(result)
 
         assert 'destroyed' in result['status'], "Error destroying instance"
+        Benchmark.Status(True)
