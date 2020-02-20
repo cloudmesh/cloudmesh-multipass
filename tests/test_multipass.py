@@ -28,8 +28,7 @@ class TestMultipass:
         Benchmark.Stop()
         VERBOSE(result)
 
-        assert "quit" in result
-        assert "clear" in result
+        assert " multipass create NAMES" in result
         Benchmark.Status(True)
 
     def test_cms_images(self):
