@@ -148,10 +148,6 @@ class TestMultipass:
         # assertion missing
         Benchmark.Status(True)
 
-    def test_benchmark(self):
-        HEADING()
-        Benchmark.print(csv=True, tag=cloud)
-
     def test_info(self):
         HEADING()
         Benchmark.Start()
@@ -341,3 +337,11 @@ class TestMultipass:
 
         assert 'destroyed' in result['status'], "Error destroying instance"
         Benchmark.Status(True)
+
+    #
+    # NOTHING BELOW THIS LINE
+    #
+
+    def test_benchmark(self):
+        HEADING()
+        Benchmark.print(csv=True, tag=cloud)
