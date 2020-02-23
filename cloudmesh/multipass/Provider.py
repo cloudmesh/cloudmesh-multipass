@@ -225,6 +225,14 @@ class Provider(ComputeNodeABC):
         else:
             print(Printer.write(data, output=output))
 
+    def remove_spinner(self, str):
+        line=str
+        line.repalace("\08-", "")
+        line.repalace("\08|", "")
+        line.repalace("\08\\", "")
+        line.repalace("\08/", "")
+        return line
+
     def update_dict(self, elements, kind=None):
         """
         converts the dict into a list
@@ -498,8 +506,10 @@ class Provider(ComputeNodeABC):
         result = ""
         if executor == "buffer":
             result = Shell.live(f"multipass exec {name} -- {command}")
+            result = self.remove_spinner(result)
         elif executor == "buffer":
             result = Shell.run(f"multipass exec {name} -- {command}")
+            result = self.remove_spinner(result)
         elif executor == "os":
             os.system(f"multipass exec {name} -- {command}")
             print('\n')
