@@ -229,7 +229,7 @@ class Provider(ComputeNodeABC):
         line=str
         line.repalace("\\08-", "")
         line.repalace("\\08|", "")
-        line.repalace("\\08\\", "")
+        line.repalace("\\08\\\\", "")
         line.repalace("\\08/", "")
         return line
 
