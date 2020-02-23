@@ -4,6 +4,7 @@ from cloudmesh.common.Shell import Shell
 from cloudmesh.common.util import yn_choice
 import sys
 
+
 class Deploy:
 
     def __init__(self, dryrun=False):

@@ -12,6 +12,7 @@ from cloudmesh.shell.command import command
 from cloudmesh.shell.command import map_parameters
 from cloudmesh.common.Printer import Printer
 
+
 class MultipassCommand(PluginCommand):
 
     # noinspection PyUnusedLocal
@@ -50,20 +51,23 @@ class MultipassCommand(PluginCommand):
           Interface to multipass
 
           Options:
-               --output=OUTPUT      the output format [default: table]. Other values are yaml, csv and json.
+               --output=OUTPUT    the output format [default: table]. Other
+                                  values are yaml, csv and json.
 
-               --image=IMAGE        the image name to be used to create a VM.
+               --image=IMAGE      the image name to be used to create a VM.
 
-               --cpus=CPUS          Number of CPUs to allocate.
-                                    Minimum: 1, default: 1.
+               --cpus=CPUS        Number of CPUs to allocate.
+                                  Minimum: 1, default: 1.
 
-               --size=SIZE          Disk space to allocate. Positive integers, in bytes, or with K, M, G suffix.
-                                    Minimum: 512M, default: 5G.
+               --size=SIZE        Disk space to allocate. Positive integers,
+                                  in bytes, or with K, M, G suffix.
+                                  Minimum: 512M, default: 5G.
 
-               --mem=MEMORY         Amount of memory to allocate. Positive integers, in bytes, or with K, M, G suffix.
-                                    Minimum: 128M, default: 1G.
+               --mem=MEMORY       Amount of memory to allocate. Positive
+                                  integers, in bytes, or with K, M, G suffix.
+                                  Minimum: 128M, default: 1G.
 
-               --cloud-init=FILE    Path to a user-data cloud-init configuration
+               --cloud-init=FILE  Path to a user-data cloud-init configuration
 
           Arguments:
               NAMES   the names of the virtual machine
@@ -84,7 +88,8 @@ class MultipassCommand(PluginCommand):
 
                 cms multipass create NAMES
 
-                Optionally you can provide image name, size, memory, # of cpus to create an instance.
+                Optionally you can provide image name, size, memory,
+                number of cpus to create an instance.
 
             Start one or multiple multipass vms with
 
@@ -122,7 +127,8 @@ class MultipassCommand(PluginCommand):
 
                 cms multipass destroy NAMES
 
-                Caution: Once destroyed everything in vm will be deleted and cannot be recovered.
+                Caution: Once destroyed everything in vm will be deleted
+                         and cannot be recovered.
 
             WHEN YOU IMPLEMENT A FUNCTION INCLUDE MINIMAL
               DOCUMENTATION HERE
@@ -216,14 +222,22 @@ class MultipassCommand(PluginCommand):
 
             timeout = 360
             group = None
-            kwargs = {"cloud_init": arguments.cloud_init, "cpus": arguments.cpus, "memory": arguments.mem}
+            kwargs = {
+                "cloud_init": arguments.cloud_init,
+                "cpus": arguments.cpus, "memory": arguments.mem
+            }
 
             for name in names:
                 if arguments.dryrun:
                     Console.ok(f"dryrun create {name} {image}")
                 else:
                     provider = Provider()
-                    result = provider.create(name, image, arguments.size, timeout, group, **kwargs)
+                    result = provider.create(name,
+                                             image,
+                                             arguments.size,
+                                             timeout,
+                                             group,
+                                             **kwargs)
                     VERBOSE(result)
 
             return result
@@ -399,7 +413,8 @@ class MultipassCommand(PluginCommand):
         elif arguments.mount:
 
             if arguments.dryrun:
-                banner(f"dryrun mount {arguments.SOURCE} {arguments.DESTINATION}")
+                banner(
+                    f"dryrun mount {arguments.SOURCE} {arguments.DESTINATION}")
             else:
                 provider = Provider()
                 provider.mount(arguments.SOURCE, arguments.DESTINATION)

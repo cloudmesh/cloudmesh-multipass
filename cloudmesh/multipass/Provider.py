@@ -277,7 +277,7 @@ class Provider(ComputeNodeABC):
                 entry["cm"]["created"] = entry["updated"] = str(
                     DateTime.now())
 
-            #elif kind == 'version':
+            # elif kind == 'version':
 
             #    entry["cm"]["created"] = str(DateTime.now())
 
@@ -294,9 +294,9 @@ class Provider(ComputeNodeABC):
         """
 
         d = {
-                "name": self.kind,
-                "multipass": None,
-                "multipassd": None
+            "name": self.kind,
+            "multipass": None,
+            "multipassd": None
         }
         result = Shell.run(f"multipass version")
         if result is not None:
@@ -403,7 +403,7 @@ class Provider(ComputeNodeABC):
         # bug should test if the name is there and if it can be started
         #
 
-        #Shell.live(f"multipass start {name}")
+        # Shell.live(f"multipass start {name}")
 
         os.system(f"multipass start {name}")
 
@@ -437,7 +437,7 @@ class Provider(ComputeNodeABC):
                            "status": "Instance destroyed (deleted and purged)"}
         else:
             # terminate only
-            #result = Shell.live(f"multipass delete {name}")
+            # result = Shell.live(f"multipass delete {name}")
             os.system(f"multipass delete {name}")
 
             dict_result = {"name": name, "status": "Instance deleted"}
