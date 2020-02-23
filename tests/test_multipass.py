@@ -52,6 +52,8 @@ class TestMultipass:
     def test_provider_images(self):
         HEADING()
 
+        assert self.provider is not None
+
         Benchmark.Start()
         result = self.provider.images()
         Benchmark.Stop()
@@ -62,6 +64,8 @@ class TestMultipass:
 
     def test_provider_run_os(self):
         HEADING()
+
+        assert self.provider is not None
 
         Benchmark.Start()
         result = self.provider.run(command="uname -a", executor="os")
@@ -76,6 +80,8 @@ class TestMultipass:
     def test_provider_run_live(self):
         HEADING()
 
+        assert self.provider is not None
+
         Benchmark.Start()
         result = self.provider.run(command="uname -a", executor="live")
         Benchmark.Stop()
@@ -89,6 +95,8 @@ class TestMultipass:
     def test_provider_run_buffer(self):
         HEADING()
 
+        assert self.provider is not None
+
         Benchmark.Start()
         result = self.provider.run(command="uname -a", executor="buffer")
         Benchmark.Stop()
@@ -101,7 +109,9 @@ class TestMultipass:
 
     def test_cms_vm(self):
         HEADING()
-        
+
+        assert self.provider is not None
+
         Benchmark.Start()
         result = Shell.execute("cms multipass vm", shell=True)
         Benchmark.Stop()
@@ -112,7 +122,9 @@ class TestMultipass:
 
     def test_provider_vm(self):
         HEADING()
-        
+
+        assert self.provider is not None
+
         Benchmark.Start()
         result = self.provider.vm()
         Benchmark.Stop()
@@ -172,6 +184,8 @@ class TestMultipass:
     def test_provider_create(self):
         HEADING()
 
+        assert self.provider is not None
+
         vm_name = f"{self.vm_name_prefix}2"
 
         provider = Provider(vm_name)
@@ -214,6 +228,9 @@ class TestMultipass:
 
     def test_provider_stop(self):
         HEADING()
+
+        assert self.provider is not None
+
         vm_name = f"{self.vm_name_prefix}2"
         provider = Provider(vm_name)
 
@@ -242,6 +259,9 @@ class TestMultipass:
 
     def test_provider_start(self):
         HEADING()
+
+        assert self.provider is not None
+
         vm_name = f"{self.vm_name_prefix}2"
         provider = Provider(vm_name)
 
@@ -256,6 +276,9 @@ class TestMultipass:
 
     def test_reboot(self):
         HEADING()
+
+        assert self.provider is not None
+
         #Using 2 VMs to test_created usingn test_create* methods.
         vm_names = f"{self.vm_name_prefix}1,{self.vm_name_prefix}3"
 
@@ -269,6 +292,9 @@ class TestMultipass:
 
     def test_provider_reboot(self):
         HEADING()
+
+        assert self.provider is not None
+
         vm_name = f"{self.vm_name_prefix}2"
         provider = Provider(vm_name)
 
@@ -297,6 +323,9 @@ class TestMultipass:
 
     def test_provider_delete(self):
         HEADING()
+
+        assert self.provider is not None
+
         vm_name = f"{self.vm_name_prefix}2"
         provider = Provider(vm_name)
 
@@ -325,6 +354,9 @@ class TestMultipass:
 
     def test_provider_destroy(self):
         HEADING()
+
+        assert self.provider is not None
+
         vm_name = f"{self.vm_name_prefix}2"
         provider = Provider(vm_name)
 
