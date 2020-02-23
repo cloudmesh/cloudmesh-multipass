@@ -53,12 +53,12 @@ class TestMultipass:
         HEADING()
 
         Benchmark.Start()
-        self.p = Provider()
-        result = self.p.images()
+        result = self.provider.images()
         Benchmark.Stop()
-        VERBOSE(str(result))
+        VERBOSE(result)
 
-        assert (str(result)).index("18.04")
+        assert "18.04" in result
+        Benchmark.Status(True)
 
     def test_provider_run_os(self):
         HEADING()
