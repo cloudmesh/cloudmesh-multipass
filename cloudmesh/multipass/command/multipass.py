@@ -10,7 +10,7 @@ from cloudmesh.multipass.Deploy import Deploy
 from cloudmesh.shell.command import PluginCommand
 from cloudmesh.shell.command import command
 from cloudmesh.shell.command import map_parameters
-
+from cloudmesh.common.Printer import Printer
 
 class MultipassCommand(PluginCommand):
 
@@ -45,6 +45,7 @@ class MultipassCommand(PluginCommand):
                 multipass transfer SOURCE DESTINATION [--dryrun]
                 multipass set key=VALUE [--dryrun]
                 multipass get [key] [--dryrun]
+                multipass version
 
           Interface to multipass
 
@@ -153,7 +154,20 @@ class MultipassCommand(PluginCommand):
 
         VERBOSE(arguments)
 
-        if arguments.list:
+        if arguments.version:
+
+            if arguments.dryrun:
+                banner("dryrun list")
+            else:
+                provider = Provider()
+                version = provider.version()
+                del version["name"]
+
+                print(Printer.attribute(version, header=["Program", "Version"]))
+
+            return ""
+
+        elif arguments.list:
 
             if arguments.dryrun:
                 banner("dryrun list")

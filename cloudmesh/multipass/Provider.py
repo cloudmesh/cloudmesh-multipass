@@ -277,7 +277,34 @@ class Provider(ComputeNodeABC):
                 entry["cm"]["created"] = entry["updated"] = str(
                     DateTime.now())
 
+            #elif kind == 'version':
+
+            #    entry["cm"]["created"] = str(DateTime.now())
+
             d.append(entry)
+        return d
+
+        # IMPLEMENT, new method
+
+    def version(self):
+        """
+        returns just the version
+
+        :return: version dict
+        """
+
+        d = {
+                "name": self.kind,
+                "multipass": None,
+                "multipassd": None
+        }
+        result = Shell.run(f"multipass version")
+        if result is not None:
+            for line in result.splitlines():
+                line = line.strip().replace("multipass  ", "multipass ")
+                key, value = line.split(" ", 1)
+                d[key] = value
+
         return d
 
     # New method to return vm status
