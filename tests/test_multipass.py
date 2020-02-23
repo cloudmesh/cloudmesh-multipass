@@ -285,6 +285,61 @@ class TestMultipass:
 
         assert 'Running' in result['status'], "Error starting instance"
         Benchmark.Status(True)
+    def test_suspend(self):
+        HEADING()
+        #Using 2 VMs to test_created usingn test_create* methods.
+        vm_names = f"{self.vm_name_prefix}1,{self.vm_name_prefix}3"
+
+        Benchmark.Start()
+        result = Shell.execute(f"cms multipass suspend {vm_names}", shell=True)
+        Benchmark.Stop()
+
+        VERBOSE(result)
+
+        assert 'Suspended' in result, "Error suspending instance"
+        Benchmark.Status(True)
+
+    def test_provider_suspend(self):
+        HEADING()
+        vm_name = f"{self.vm_name_prefix}2"
+        provider = Provider(vm_name)
+
+        Benchmark.Start()
+        result = provider.suspend(vm_name)
+        Benchmark.Stop()
+
+        VERBOSE(result)
+
+        assert 'Suspend' in result['status'], "Error suspending instance"
+        Benchmark.Status(True)
+        
+    def test_resume(self):
+        HEADING()
+        #Using 2 VMs to test_created usingn test_create* methods.
+        vm_names = f"{self.vm_name_prefix}1,{self.vm_name_prefix}3"
+        Shell.execute(f"cms multipass suspend {vm_names}", shell=True)
+        Benchmark.Start()
+        result = Shell.execute(f"cms multipass resume {vm_names}", shell=True)
+        Benchmark.Stop()
+
+        VERBOSE(result)
+
+        assert 'Resumed' in result, "Error resuming instance"
+        Benchmark.Status(True)
+
+    def test_provider_resume(self):
+        HEADING()
+        vm_name = f"{self.vm_name_prefix}2"
+        provider = Provider(vm_name)
+        Provider.suspend(vm_name)
+        Benchmark.Start()
+        result = provider.resume(vm_name)
+        Benchmark.Stop()
+
+        VERBOSE(result)
+
+        assert 'Resume' in result['status'], "Error resuming instance"
+        Benchmark.Status(True)
 
     def test_reboot(self):
         HEADING()
