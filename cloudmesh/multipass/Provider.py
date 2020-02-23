@@ -227,10 +227,10 @@ class Provider(ComputeNodeABC):
 
     def remove_spinner(self, str):
         line=str
-        line.repalace("\08-", "")
-        line.repalace("\08|", "")
-        line.repalace("\08\\", "")
-        line.repalace("\08/", "")
+        line.repalace("\\08-", "")
+        line.repalace("\\08|", "")
+        line.repalace("\\08\\", "")
+        line.repalace("\\08/", "")
         return line
 
     def update_dict(self, elements, kind=None):
