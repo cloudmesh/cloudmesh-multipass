@@ -37,6 +37,7 @@ class TestMultipass:
         result = Shell.execute("cms multipass images", shell=True)
         Benchmark.Stop()
         VERBOSE(result)
+        result = str(result)
 
         assert "18.04" in result
         Benchmark.Status(True)
@@ -59,6 +60,8 @@ class TestMultipass:
         Benchmark.Stop()
         VERBOSE(result)
 
+        result = str(result)
+
         assert "18.04" in result
         Benchmark.Status(True)
 
@@ -73,6 +76,8 @@ class TestMultipass:
         VERBOSE(result)
 
         # find a good assertion
+
+        result = str(result)
 
         assert "18.04" in result
         Benchmark.Status(True)
@@ -89,6 +94,8 @@ class TestMultipass:
 
         # find a good assertion
 
+        result = str(result)
+
         assert "18.04" in result
         Benchmark.Status(True)
 
@@ -103,6 +110,7 @@ class TestMultipass:
         VERBOSE(result)
 
         # find a good assertion
+        result = str(result)
 
         assert "18.04" in result
         Benchmark.Status(True)
@@ -116,7 +124,9 @@ class TestMultipass:
         result = Shell.execute("cms multipass vm", shell=True)
         Benchmark.Stop()
         VERBOSE(result)
-        
+
+        result = str(result)
+
         assert "18.04" in result
         Benchmark.Status(True)
 
@@ -129,7 +139,9 @@ class TestMultipass:
         result = self.provider.vm()
         Benchmark.Stop()
         VERBOSE(result)
-        
+
+        result = str(result)
+
         assert "18.04" in result
         Benchmark.Status(True)
 
