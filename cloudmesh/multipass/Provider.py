@@ -444,8 +444,8 @@ class Provider(ComputeNodeABC):
 
         # BUG
         # if result['status'] != 0:
-        #    dict_result = {"name": name,
-        #                   "status": "Error when deleting/destroying instance"}
+        #   dict_result = {"name": name,
+        #                  "status": "Error when deleting/destroying instance"}
 
         return dict_result
 
@@ -483,8 +483,8 @@ class Provider(ComputeNodeABC):
         :param executor: one of live, buffer, os
         :return: only returned when using live or buffer
 
-        live   = prints the output immediatly but also buffers it and returns it
-                 at the end
+        live   = prints the output immediatly but also buffers it and returns
+                 it at the end
 
         buffer = buffers the result and only returns it after the command has
                  executed.
@@ -1005,7 +1005,7 @@ class Provider(ComputeNodeABC):
         # you may need to use glob for dirs (recursively)
         # just create a glob and put it in a list.
         result = ""
-        if (source is not None) and (source is not None) and (name is not None):
+        if None not in (source, name):
             result = Shell.run(
                 f"multipass transfer --name={name} {source} {destination}")
         else:
