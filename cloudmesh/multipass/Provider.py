@@ -396,7 +396,6 @@ class Provider(ComputeNodeABC):
         return self.update_dict(result, kind="vm")
 
     # IMPLEMENT
-    # WRONG, shoudl this not use Shell.live so we can redirect and test ...
     def start(self, name=None):
         """
         start a node
@@ -407,21 +406,20 @@ class Provider(ComputeNodeABC):
 
         banner(f"start {name}")
 
-        #
-        # bug should test if the name is there and if it can be started
-        #
+        dict_result = {}
+        result = Shell.live(f"multipass start {name}")
 
-        # Shell.live(f"multipass start {name}")
-
-        os.system(f"multipass start {name}")
-
-        # Get the vm status.
-        dict_result = self._get_vm_status(name)
+        if result['status'] > 0:
+            dict_result = {"name": name,
+                           "status": "Error when starting instance"}
+        else:
+            # Get the vm status.
+            dict_result = self._get_vm_status(name)
 
         return dict_result
 
-    # IMPLEMENT, POSSIBLE BUG wilth live
-    def delete(self, name="cloudmesh", purge=True):
+    # IMPLEMENT
+    def delete(self, name=None, purge=True):
         """
         Deletes the names instance
 
@@ -432,28 +430,25 @@ class Provider(ComputeNodeABC):
 
         banner(f"delete {name}")
 
-        #
-        # bug should test if the name is there
-        #
-        dict_result = None
+        dict_result = {}
         if purge:
             # terminate and purge
-            # result = Shell.live(f"multipass delete {name} --purge")
-            os.system(f"multipass delete {name} --purge")
+            result = Shell.live(f"multipass delete {name} --purge")
+            if result['status'] > 0:
+                dict_result = {"name": name,
+                                "status": "Error when deleting/destroying instance"}
+            else:
+                dict_result = {"name": name,
+                               "status": "Instance destroyed (deleted and purged)"}
 
-            dict_result = {"name": name,
-                           "status": "Instance destroyed (deleted and purged)"}
         else:
             # terminate only
-            # result = Shell.live(f"multipass delete {name}")
-            os.system(f"multipass delete {name}")
-
-            dict_result = {"name": name, "status": "Instance deleted"}
-
-        # BUG
-        # if result['status'] != 0:
-        #   dict_result = {"name": name,
-        #                  "status": "Error when deleting/destroying instance"}
+            result = Shell.live(f"multipass delete {name}")
+            if result['status'] > 0:
+                dict_result = {"name": name,
+                                "status": "Error when deleting/destroying instance"}
+            else:
+                dict_result = {"name": name, "status": "Instance deleted"}
 
         return dict_result
 
@@ -545,7 +540,7 @@ class Provider(ComputeNodeABC):
             result = Shell.run(f"multipass set {key} {value}")
         return result
 
-    # IMPLEMENT, POSSIBLE BUG wilth live
+    # IMPLEMENT
     def stop(self, name=None):
         """
         stops the node with the given name
@@ -555,16 +550,15 @@ class Provider(ComputeNodeABC):
         """
         banner(f"stop {name}")
 
-        # WRONG
-        dict_result = self._get_vm_status(name)
-        if (dict_result['status'] != "Stopped"):
-            # Shell.live(f"multipass stop {name}")
-            os.system(f"multipass stop {name}")
+        dict_result = {}
+        result = Shell.live(f"multipass stop {name}")
 
+        if result['status'] > 0:
+            dict_result = {"name": name,
+                           "status": "Error when stopping instance"}
+        else:
             # Get the vm status.
             dict_result = self._get_vm_status(name)
-        else:
-            dict_result['status'] = f"{name} is already stopped"
 
         return dict_result
 
@@ -1028,10 +1022,12 @@ class Provider(ComputeNodeABC):
 if __name__ == "__main__":
     # excellent-titmouse is multipass instance name
     p = Provider()  # name="cloudmesh"
-    p.vm()
-    p.start()
-    p.list()
-    p.run("uname -r")
-    p.images()
-    p.delete()
-    p.list()
+    #p.vm()
+    #p.start("testvm")
+    #p.stop("testvm")
+    #p.vm()
+    #p.run("uname -r")
+    #p.images()
+    #p.delete("testvm")
+    #p.vm()
+    #p.list()

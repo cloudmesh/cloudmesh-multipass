@@ -179,7 +179,11 @@ class MultipassCommand(PluginCommand):
                 banner("dryrun list")
             else:
                 provider = Provider()
-                provider.list()
+                list = provider.list()
+
+                print(provider.Print(list,
+                                     kind='image',
+                                     output=arguments.output))
 
             return ""
 
