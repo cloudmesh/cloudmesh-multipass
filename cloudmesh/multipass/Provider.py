@@ -1,7 +1,7 @@
 import json
 import os
 
-from cloudmesh.abstractclass.ComputeNodeABC import ComputeNodeABC
+from cloudmesh.abstract.ComputeNodeABC import ComputeNodeABC
 from cloudmesh.common.DateTime import DateTime
 from cloudmesh.common.Printer import Printer
 from cloudmesh.common.Shell import Shell
