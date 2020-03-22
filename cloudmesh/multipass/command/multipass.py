@@ -47,6 +47,7 @@ class MultipassCommand(PluginCommand):
                 multipass set key=VALUE [--dryrun]
                 multipass get [key] [--dryrun]
                 multipass deploy [--dryrun]
+                multipass rename NAMES [--dryrun]
 
           Interface to multipass
 
@@ -285,6 +286,28 @@ class MultipassCommand(PluginCommand):
                     VERBOSE(result)
 
             return result
+
+        elif arguments.rename:
+
+            result = ""
+
+            if arguments.dryrun:
+                banner(f"Current Name: {names[0]}"
+                       f"New Name: {names[1]}")
+
+            if names.len() > 2:
+                Console.error("You have entered too many names."
+                              "Only enter TWO names at a time.")
+            else:
+                old_name = names[0]
+                new_name = names[1]
+
+                provider = Provider()
+                result = provider.rename(old_name, new_name)
+                VERBOSE(result)
+
+            return result
+
 
         elif arguments.suspend:
 

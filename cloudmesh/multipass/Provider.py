@@ -313,9 +313,12 @@ class Provider(ComputeNodeABC):
         result = Shell.run("multipass find --format=json")
         #
         # TODO: relpace with json.loads
-        #
-        result = eval(result)['images']
-        return result
+        result = json.loads(result)
+        dict_result = {
+            'images': result['images']
+        }
+
+        return dict_result
 
     def images(self, **kwargs):
         """
@@ -347,13 +350,12 @@ class Provider(ComputeNodeABC):
         #
         # TODO: relpace with json.loads
         #
-        result = eval(result)['list']
-        result_new_dict = {}
-        for i in range(len(result)):
-            result_new_dict[result[i]["name"]] = result[i]
+        results = json.loads(result)
+        dict_results = {
+            'vms': results['list']
+        }
 
-        return result_new_dict
-
+        return dict_results
     def vm(self, **kwargs):
         """
         Lists the vms on the cloud
@@ -663,7 +665,7 @@ class Provider(ComputeNodeABC):
 
     # IMPLEMENT
     # TODO: pytest
-    def rename(self, name=None, destination=None):
+    def rename(self, old_name=None, new_name=None):
         """
         rename a node
 
@@ -671,8 +673,16 @@ class Provider(ComputeNodeABC):
         :param name: the current name
         :return: the dict with the new name
         """
-        Console.error("Renaming an instance is not yet supported by multipass")
-        return ""
+        result = Shell.run(f"multipass info {old_name} --format=json")
+        result = json.load(result)
+        result['info'][new_name] = result['info'].pop(old_name)
+        dict_results = {
+            "info": {
+                result['info'][new_name]
+            }
+        }
+
+        return dict_results
 
     # DO NOT IMPLEMENT
     def keys(self):
