@@ -17,29 +17,30 @@
 
 from setuptools import find_packages, setup
 import io
+import os
 
 def readfile(filename):
     with io.open(filename, encoding="utf-8") as stream:
         return stream.read().split()
 
-
-#requiers = readfile ('requirements.txt')
-#
-# add minimum requirements here
-#
 requiers = """
 psutil
-pygments
-""".split("\n")
+""".splitlines()
 
-# dependency_links = ['http://github.com/nicolaiarocci/eve.git@develop']
+requiers_cloudmesh = """
+cloudmesh-common
+cloudmesh-cmd5
+cloudmesh-abstract
+cloudmesh-configuration
+""".splitlines()
+
+if "TESTING" not in os.environ:
+    requiers = requiers + requiers_cloudmesh
 
 version = readfile("VERSION")[0].strip()
 
 with open('README.md') as f:
     long_description = f.read()
-
-
 
 NAME = "cloudmesh-multipass"
 DESCRIPTION = "A command called multipass and foo for the cloudmesh shell"

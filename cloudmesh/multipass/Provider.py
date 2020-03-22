@@ -1,14 +1,13 @@
 import json
 import os
 
-from cloudmesh.abstractclass.ComputeNodeABC import ComputeNodeABC
+from cloudmesh.abstract.ComputeNodeABC import ComputeNodeABC
 from cloudmesh.common.DateTime import DateTime
 from cloudmesh.common.Printer import Printer
 from cloudmesh.common.Shell import Shell
 from cloudmesh.common.console import Console
 from cloudmesh.common.util import banner
 from cloudmesh.common.dotdict import dotdict
-
 
 # some of the banners will be removed.
 # they must be used for dryrun
@@ -64,7 +63,6 @@ Gregor: interesting is the file:// and http(s):// we shoudl try if we can
   osx and windows
 """
 
-
 # multipass mount
 # multipass transfer
 
@@ -91,7 +89,6 @@ Gregor: interesting is the file:// and http(s):// we shoudl try if we can
   version   Show version details
 
 """
-
 
 
 class Provider(ComputeNodeABC):
@@ -228,6 +225,14 @@ class Provider(ComputeNodeABC):
         else:
             print(Printer.write(data, output=output))
 
+    def remove_spinner(self, str):
+        line=str
+        line.repalace("\\08-", "")
+        line.repalace("\\08|", "")
+        line.repalace("\\08\\\\", "")
+        line.repalace("\\08/", "")
+        return line
+
     def update_dict(self, elements, kind=None):
         """
         converts the dict into a list
@@ -280,7 +285,34 @@ class Provider(ComputeNodeABC):
                 entry["cm"]["created"] = entry["updated"] = str(
                     DateTime.now())
 
+            # elif kind == 'version':
+
+            #    entry["cm"]["created"] = str(DateTime.now())
+
             d.append(entry)
+        return d
+
+        # IMPLEMENT, new method
+
+    def version(self):
+        """
+        returns just the version
+
+        :return: version dict
+        """
+
+        d = {
+            "name": self.kind,
+            "multipass": None,
+            "multipassd": None
+        }
+        result = Shell.run(f"multipass version")
+        if result is not None:
+            for line in result.splitlines():
+                line = line.strip().replace("multipass  ", "multipass ")
+                key, value = line.split(" ", 1)
+                d[key] = value
+
         return d
 
     # New method to return vm status
@@ -366,7 +398,6 @@ class Provider(ComputeNodeABC):
         return self.update_dict(result, kind="vm")
 
     # IMPLEMENT
-    # WRONG, shoudl this not use SHell.live so we can redirect and test ...
     def start(self, name=None):
         """
         start a node
@@ -377,15 +408,20 @@ class Provider(ComputeNodeABC):
 
         banner(f"start {name}")
 
-        Shell.live(f"multipass start {name}")
+        dict_result = {}
+        result = Shell.live(f"multipass start {name}")
 
-        # Get the vm status.
-        dict_result = self._get_vm_status(name)
+        if result['status'] > 0:
+            dict_result = {"name": name,
+                           "status": "Error when starting instance"}
+        else:
+            # Get the vm status.
+            dict_result = self._get_vm_status(name)
 
         return dict_result
 
     # IMPLEMENT
-    def delete(self, name="cloudmesh", purge=False):
+    def delete(self, name=None, purge=True):
         """
         Deletes the names instance
 
@@ -396,17 +432,25 @@ class Provider(ComputeNodeABC):
 
         banner(f"delete {name}")
 
+        dict_result = {}
         if purge:
             # terminate and purge
             result = Shell.live(f"multipass delete {name} --purge")
-            dict_result = {"name": name, "status": "Instance destroyed (deleted and purged)"}
+            if result['status'] > 0:
+                dict_result = {"name": name,
+                                "status": "Error when deleting/destroying instance"}
+            else:
+                dict_result = {"name": name,
+                               "status": "Instance destroyed (deleted and purged)"}
+
         else:
             # terminate only
             result = Shell.live(f"multipass delete {name}")
-            dict_result = {"name": name, "status": "Instance deleted"}
-
-        if result['status'] != 0:
-            dict_result = {"name": name, "status": "Error when deleting/destroying instance"}
+            if result['status'] > 0:
+                dict_result = {"name": name,
+                                "status": "Error when deleting/destroying instance"}
+            else:
+                dict_result = {"name": name, "status": "Instance deleted"}
 
         return dict_result
 
@@ -434,7 +478,7 @@ class Provider(ComputeNodeABC):
         print("\n")
         return ""
 
-    # IMPLEMENT
+    # IMPLEMENT, POSSIBLE BUG wilth live
     def run(self, name="cloudmesh", command=None, executor="buffer"):
         """
         executes a command in a named multipass instance
@@ -444,8 +488,8 @@ class Provider(ComputeNodeABC):
         :param executor: one of live, buffer, os
         :return: only returned when using live or buffer
 
-        live   = prints the output immediatly but also buffers it and returns it
-                 at the end
+        live   = prints the output immediatly but also buffers it and returns
+                 it at the end
 
         buffer = buffers the result and only returns it after the command has
                  executed.
@@ -459,8 +503,10 @@ class Provider(ComputeNodeABC):
         result = ""
         if executor == "buffer":
             result = Shell.live(f"multipass exec {name} -- {command}")
+            result = self.remove_spinner(result)
         elif executor == "buffer":
             result = Shell.run(f"multipass exec {name} -- {command}")
+            result = self.remove_spinner(result)
         elif executor == "os":
             os.system(f"multipass exec {name} -- {command}")
             print('\n')
@@ -478,7 +524,7 @@ class Provider(ComputeNodeABC):
         :return:
         """
         result = ""
-        if (key is not None):
+        if key is not None:
             result = Shell.run(f"multipass get {key}")
         return result
 
@@ -506,14 +552,15 @@ class Provider(ComputeNodeABC):
         """
         banner(f"stop {name}")
 
-        # WRONG
-        dict_result = self._get_vm_status(name)
-        if (dict_result['status'] != "Stopped"):
-            Shell.live(f"multipass stop {name}")
+        dict_result = {}
+        result = Shell.live(f"multipass stop {name}")
+
+        if result['status'] > 0:
+            dict_result = {"name": name,
+                           "status": "Error when stopping instance"}
+        else:
             # Get the vm status.
             dict_result = self._get_vm_status(name)
-        else:
-            dict_result['status'] = f"{name} is already stopped"
 
         return dict_result
 
@@ -611,21 +658,22 @@ class Provider(ComputeNodeABC):
 
         # Add options to create command
         if cpu is not None:
-            command = f"{command} --cpus {cpu}"
+            command = command + f" --cpus {cpu}"
 
         if memory is not None:
-            command = f"{command} --mem {memory}"
+            command = command + f" --mem {memory}"
 
         if size is not None:
-            command = f"{command} --disk {size}"
+            command = command + f" --disk {size}"
 
         if cloud_init is not None:
-            command = f"{command} --cloud-init {cloud_init}"
+            command = command + f" --cloud-init {cloud_init}"
 
         if image is not None:
             command = f"{command} {image}"
 
-        result = Shell.live(command, )
+        # result = Shell.live(command, )  # ?
+        os.system(command)
 
         # Get the vm status.
         dict_result = self._get_vm_status(name)
@@ -729,7 +777,7 @@ class Provider(ComputeNodeABC):
         """
         raise NotImplementedError
 
-    # IMPLEMENT
+    # IMPLEMENT, POSSIBLE BUG wilth live
     def reboot(self, name=None):
         """
         Reboot a list of nodes with the given names
@@ -740,7 +788,8 @@ class Provider(ComputeNodeABC):
 
         banner(f"reboot {name}")
 
-        Shell.live(f"multipass restart {name}")
+        # Shell.live(f"multipass restart {name}")
+        os.system(f"multipass restart {name}")
 
         dict_result = self._get_vm_status(name)
 
@@ -938,7 +987,8 @@ class Provider(ComputeNodeABC):
         """
         result = ""
         if (source is not None) and (source is not None) and (name is not None):
-            result = Shell.run(f"multipass mount --name={name} {source} {destination}")
+            result = Shell.run(
+                f"multipass mount --name={name} {source} {destination}")
         else:
             Console.error("make sure to specify all attributes")
             return ""
@@ -969,7 +1019,7 @@ class Provider(ComputeNodeABC):
         # you may need to use glob for dirs (recursively)
         # just create a glob and put it in a list.
         result = ""
-        if (source is not None) and (source is not None) and (name is not None):
+        if None not in (source, name):
             result = Shell.run(
                 f"multipass transfer --name={name} {source} {destination}")
         else:
@@ -979,15 +1029,15 @@ class Provider(ComputeNodeABC):
         return result
 
 
-
-
 if __name__ == "__main__":
     # excellent-titmouse is multipass instance name
     p = Provider()  # name="cloudmesh"
-    p.vm()
-    p.start()
-    p.list()
-    p.run("uname -r")
-    p.images()
-    p.delete()
-    p.list()
+    #p.vm()
+    #p.start("testvm")
+    #p.stop("testvm")
+    #p.vm()
+    #p.run("uname -r")
+    #p.images()
+    #p.delete("testvm")
+    #p.vm()
+    #p.list()
