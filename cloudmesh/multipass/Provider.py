@@ -175,8 +175,7 @@ class Provider(ComputeNodeABC):
 
     STATUS = ['UNKOWN']
 
-    def __init__(self, name="multipass",
-                 configuration="~/.cloudmesh/cloudmesh.yaml"):
+    def __init__(self, name="multipass"):
         """
         Initializes the multipass provider. The default parameters are read
         from the configuration file that is defined in yaml format.
@@ -190,7 +189,7 @@ class Provider(ComputeNodeABC):
         # the get and set methods and setting defaults for sizes
         #
         # conf = Config(configuration)["cloudmesh"]
-        # super().__init__(name, conf)
+        # super().__init__(name)
         #
         self.cloudtype = "multipass"
         self.cloud = name
