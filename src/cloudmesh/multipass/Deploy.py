@@ -3,13 +3,15 @@ from cloudmesh.common.console import Console
 from cloudmesh.common.Shell import Shell
 from cloudmesh.common.util import yn_choice
 import sys
-
+from cloudmesh.common.security import can_use_sudo
 
 class Deploy:
 
     def __init__(self, dryrun=False):
         self.dryrun = dryrun
         self.operating_system = sys.platform.lower()
+        self.directory = ".tmp"
+        os.makedirs(self.directory, exist_ok=True)
 
     def install(self):
         if self.operating_system == "windows":
@@ -24,16 +26,31 @@ class Deploy:
             raise NotImplementedError
 
     def _install_on_windows(self):
+
+        raise NotImplementedError
+        
+        import ctypes
+
+        def is_admin():
+            try:
+                return ctypes.windll.shell32.IsUserAnAdmin()
+            except:
+                return False
+
+        if not is_admin():
+            Console.error("multipass needs admin, but you are not allowed to use it.")
+            return ""
+
         if not self.dryrun:
             Console.error("dryrun is not yet implemented")
             return ""
 
         # see https://multipass.run/docs/installing-on-windows
-        raise NotImplementedError
+
 
     def _install_on_osx(self):
         """
-        installs version 1.0.0 on macOS
+        installs multipass current version on macOS
 
         see https://multipass.run/docs/installing-on-macos
         """
@@ -44,24 +61,31 @@ class Deploy:
             if not self.dryrun:
                 return ""
         # download
-        url = "https://github.com/canonical/multipass/releases/download/v1.0.0/multipass-1.0.0+mac-Darwin.pkg"
+
+        if not can_use_sudo():
+            Console.error("multipass needs sudo, but you are not allowed to use it.")
+            return ""
+
+        url = "https://multipass.run/download/macos"
         pkg = "multipass-1.0.0+mac-Darwin.pkg"
         # install
         try:
+            get_command = f"cd {self.directory} ; wget wget --content-disposition {url}"
+            open_commad = f"cd {self.directory} ; open {pkg}"
             if self.dryrun:
                 Console.ok("Dryrun:")
                 Console.ok("")
-                Console.ok(f"curl {url} --output {pkg}")
-                Console.ok(f"open {pkg}")
+                Console.ok(get_command)
+                Console.ok(open_commad)
             else:
-                Shell.run(f"curl {url} --output {pkg}")
-                os.system(f"open {pkg}")
+                Shell.run(get_command)
+                os.system(open_commad)
         except:
             Console.error("problem downloading multipass")
         # remove
         if not self.dryrun and \
             yn_choice("do you want to delete the downloaded file?"):
-            Shell.rm(f"{pkg}")
+            Shell.rm(self.directory)
 
     def _install_on_ubuntu(self):
         """
@@ -69,9 +93,15 @@ class Deploy:
 
         see https://multipass.run/docs/installing-on-linux
         """
-        if not self.dryrun:
-            Console.error("dryrun is not yet implemented")
+        if not can_use_sudo():
+            Console.error("multipass needs sudo, but you are not allowed to use it.")
             return ""
-        command = "snap refresh multipass --channel stable"
+
+        command = "sudo snap install multipass"
+        if not self.dryrun:
+            Console.ok("Dryrun:")
+            Console.ok("")
+            Console.ok(command)
+            return ""
         os.system(command)
         raise NotImplementedError
