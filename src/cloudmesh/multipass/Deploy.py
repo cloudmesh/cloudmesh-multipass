@@ -28,7 +28,7 @@ class Deploy:
     def _install_on_windows(self):
 
         raise NotImplementedError
-        
+
         import ctypes
 
         def is_admin():
