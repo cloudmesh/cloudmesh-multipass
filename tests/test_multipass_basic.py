@@ -1,8 +1,8 @@
 ###############################################################
 # pytest -v --capture=no tests
-# pytest -v --capture=no tests/test_multipass_general.py
-# pytest -v  tests/test_multipass_general.py
-# pytest -v --capture=no  tests/test_multipass_general.py::Test_Multipass::<METHODNAME>
+# pytest -v --capture=no tests/test_multipass_basic.py
+# pytest -v  tests/test_multipass_basic.py
+# pytest -v --capture=no  tests/test_multipass_.py::Test_Multipass::<METHODNAME>
 ###############################################################
 import pytest
 from cloudmesh.common.Shell import Shell

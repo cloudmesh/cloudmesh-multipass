@@ -8,12 +8,16 @@ from cloudmesh.common.Shell import Shell
 from cloudmesh.common.console import Console
 from cloudmesh.common.util import banner
 from cloudmesh.common.dotdict import dotdict
+from cloudmesh.common.util import path_expand
+from yamldb.YamlDB import YamlDB
+from tabulate import tabulate
+import yaml
 
 # some of the banners will be removed.
 # they must be used for dryrun
 # we also keep it for shell, abd create
 
-# in case of create we need to look at cloudmesh-openstack as it also measures 
+# in case of create we need to look at cloudmesh-openstack as it also measures
 # the time it takes to start the image and includes it into the cm dict
 
 # all but the shell need to return a cm dict even if the original multipass does
@@ -92,7 +96,87 @@ Gregor: interesting is the file:// and http(s):// we shoudl try if we can
 
 
 class Provider(ComputeNodeABC):
-    kind = "multipass"
+    def __init__(self, name="multipass"):
+        """Initializes the multipass provider. The default parameters are read
+        from the configuration file that is defined in yaml format.
+
+        Args:
+            name: The name of the provider as defined in the yaml file
+            configuration: The location of the yaml configuration file
+        """
+        #
+        # The following will be added later once we have identified how to
+        # configure multipass from cloudmesh.yaml. This requires understanding
+        # the get and set methods and setting defaults for sizes
+        #
+        # conf = Config(configuration)["cloudmesh"]
+        # super().__init__(name)
+        #
+        self.kind = "multipass"
+
+        self.cache = path_expand("~/.cloudmesh/multipass")
+        self.image_cache = path_expand(f"{self.cache}/images.json")
+        self.vm_cache = path_expand(f"{self.cache}/vm.json")
+
+        self.cloudtype = "multipass"
+        self.cloud = name
+        self.config = None
+        self.create_cache_directory()
+        self.config = YamlDB(filename=path_expand("~/.cloudmesh/cloud.yaml"))
+
+    def test(self):
+        print(self.config)
+
+    def better_tabulate(self, data, output="table", headers=None, order=None, **kwargs):
+        if output == "table":
+            tablefmt = "pretty"
+        else:
+            tablefmt = output
+
+        if kwargs is None:
+            kwargs = {}
+        if "tablfmt" not in kwargs:
+            kwargs["tablefmt"] = tablefmt
+
+        if output == "json":
+            return json.dumps(data, indent=4)
+        elif output == "yaml":
+            return yaml.dump(data, indent=4)
+        else:
+            if headers is None:
+                headers = list(data[0].keys())
+            if order is not None:
+                table_data = [[item[key] for key in order] for item in data]
+                table = tabulate(table_data, headers=headers, **kwargs)
+            else:
+                table = tabulate(data, headers=headers, **kwargs)
+        return table
+
+    def defaults(self, output="table"):
+        data = self.config["cloudmesh.cloud.multipass.alias.vm"].copy()
+
+        data = [{**item, "alias": key} for key, item in data.items()]
+
+        if output in ["json", "yaml"]:
+            print(self.better_tabulate(data, output=output))
+        else:
+            order = ["alias", "id", "cpus", "disk", "memory"]
+            headers = ["Name", "OS", "CPUs", "Disk", "Memory"]
+
+            table_data = [[item[key] for key in order] for item in data]
+
+            table = self.better_tabulate(
+                table_data,
+                headers=headers,
+                numalign="right",
+                stralign="right",
+                output=output,
+            )
+            print(table)
+
+    def create_cache_directory(self):
+        if not os.path.exists(self.cache):
+            os.makedirs(self.cache)
 
     sample = """
     cloudmesh:
@@ -121,83 +205,47 @@ class Provider(ComputeNodeABC):
     output = {
         "vm": {
             "sort_keys": ["cm.name"],
-            "order": ["cm.name",
-                      "cm.cloud",
-                      "ipv4",
-                      "name",
-                      "release",
-                      "state"],
-            "header": ["Name",
-                       "Cloud",
-                       "Address",
-                       "Name",
-                       "Release",
-                       "State"],
+            "order": ["cm.name", "cm.cloud", "ipv4", "name", "release", "state"],
+            "header": ["Name", "Cloud", "Address", "Name", "Release", "State"],
         },
         "image": {
             "sort_keys": ["cm.name"],
-            "order": ["cm.name",
-                      "os",
-                      "release",
-                      "remote",
-                      "version",
-                      "aliases"],
-            "header": ["Name",
-                       "OS",
-                       "Release",
-                       "Remote",
-                       "Version",
-                       "Alias"]
+            "order": ["cm.name", "os", "release", "remote", "version", "aliases"],
+            "header": ["Name", "OS", "Release", "Remote", "Version", "Alias"],
         },
         "info": {
             "sort_keys": ["cm.name"],
-            "order": ["name",
-                      "state",
-                      "images_release",
-                      "memory",
-                      "mounts",
-                      "ipv4",
-                      "release",
-                      "image_hash"],
-            "header": ["Name",
-                       "State",
-                       "Image Release",
-                       "Memory",
-                       "Mounts",
-                       "Ipv4",
-                       "Release",
-                       "Image Hash"]
+            "order": [
+                "name",
+                "state",
+                "images_release",
+                "memory",
+                "mounts",
+                "ipv4",
+                "release",
+                "image_hash",
+            ],
+            "header": [
+                "Name",
+                "State",
+                "Image Release",
+                "Memory",
+                "Mounts",
+                "Ipv4",
+                "Release",
+                "Image Hash",
+            ],
         },
     }
 
     # please add a status here if there is one that you observe. WHat are all
     # the States form multipass?
 
-    STATUS = ['UNKOWN']
-
-    def __init__(self, name="multipass"):
-        """
-        Initializes the multipass provider. The default parameters are read
-        from the configuration file that is defined in yaml format.
-
-        :param name: The name of the provider as defined in the yaml file
-        :param configuration: The location of the yaml configuration file
-        """
-        #
-        # The following will be added later once we have identified how to
-        # configure multipass from cloudmesh.yaml. This requires understanding
-        # the get and set methods and setting defaults for sizes
-        #
-        # conf = Config(configuration)["cloudmesh"]
-        # super().__init__(name)
-        #
-        self.cloudtype = "multipass"
-        self.cloud = name
+    STATUS = ["UNKOWN"]
 
     # noinspection PyPep8Naming
     # TODO: docstring
     def Print(self, data, output=None, kind=None):
-
         if output == "table":
             if kind == "secrule":
                 # this is just a temporary fix, both in sec.py and
@@ -209,23 +257,25 @@ class Provider(ComputeNodeABC):
                     result.append(group)
                 data = result
 
-            order = self.output[kind]['order']  # not pretty
-            header = self.output[kind]['header']  # not pretty
+            order = self.output[kind]["order"]  # not pretty
+            header = self.output[kind]["header"]  # not pretty
             # humanize = self.output[kind]['humanize']  # not pretty
-
-            print(Printer.flatwrite(data,
-                                    sort_keys=["name"],
-                                    order=order,
-                                    header=header,
-                                    output=output,
-                                    # humanize=humanize
-                                    )
-                  )
+            print(
+                Printer.write(
+                    data,
+                    sort_keys=["name"],
+                    order=order,
+                    header=header,
+                    output=output,
+                    # humanize=humanize
+                )
+            )
         else:
+            print("else")
             print(Printer.write(data, output=output))
 
     def remove_spinner(self, str):
-        line=str
+        line = str
         line.repalace("\\08-", "")
         line.repalace("\\08|", "")
         line.repalace("\\08\\\\", "")
@@ -233,14 +283,16 @@ class Provider(ComputeNodeABC):
         return line
 
     def update_dict(self, elements, kind=None):
-        """
-        converts the dict into a list
+        """converts the dict into a list
 
-        :param elements: the list of original dicts. If elements is a single
-                         dict a list with a single element is returned.
-        :param kind: for some kinds special attributes are added. This includes
-                     key, vm, image, flavor.
-        :return: The list with the modified dicts
+        Args:
+            elements: the list of original dicts. If elements is a
+                single dict a list with a single element is returned.
+            kind: for some kinds special attributes are added. This
+                includes key, vm, image, flavor.
+
+        Returns:
+            The list with the modified dicts
         """
 
         if elements is None:
@@ -248,24 +300,24 @@ class Provider(ComputeNodeABC):
 
         d = []
         for key, entry in elements.items():
-
-            entry['name'] = key
+            entry["name"] = key
 
             if "cm" not in entry:
-                entry['cm'] = {}
+                entry["cm"] = {}
 
             # if kind == 'ip':
             #    entry['name'] = entry['floating_ip_address']
 
-            entry["cm"].update({
-                "kind": kind,
-                "driver": self.cloudtype,
-                "cloud": self.cloud,
-                "name": key
-            })
+            entry["cm"].update(
+                {
+                    "kind": kind,
+                    "driver": self.cloudtype,
+                    "cloud": self.cloud,
+                    "name": key,
+                }
+            )
 
-            if kind == 'vm':
-
+            if kind == "vm":
                 entry["cm"]["updated"] = str(DateTime.now())
 
                 # if 'public_v4' in entry:
@@ -279,10 +331,8 @@ class Provider(ComputeNodeABC):
                 # else:
                 #    entry["cm"]["created"] = entry["modified"]
 
-            elif kind == 'image':
-
-                entry["cm"]["created"] = entry["updated"] = str(
-                    DateTime.now())
+            elif kind == "image":
+                entry["cm"]["created"] = entry["updated"] = str(DateTime.now())
 
             # elif kind == 'version':
 
@@ -294,17 +344,13 @@ class Provider(ComputeNodeABC):
         # IMPLEMENT, new method
 
     def version(self):
-        """
-        returns just the version
+        """returns just the version
 
-        :return: version dict
+        Returns:
+            version dict
         """
 
-        d = {
-            "name": self.kind,
-            "multipass": None,
-            "multipassd": None
-        }
+        d = {"name": self.kind, "multipass": None, "multipassd": None}
         result = Shell.run(f"multipass version")
         if result is not None:
             for line in result.splitlines():
@@ -317,92 +363,91 @@ class Provider(ComputeNodeABC):
     # New method to return vm status
     # TODO: docstring
     def _get_vm_status(self, name=None) -> dict:
-
         dict_result = {}
         result = Shell.run(f"multipass info {name} --format=json")
 
         if f'instance "{name}" does not exist' in result:
-            dict_result = {
-                'name': name,
-                'status': "instance does not exist"
-            }
+            dict_result = {"name": name, "status": "instance does not exist"}
         else:
             result = json.loads(result)
-            dict_result = {
-                'name': name,
-                'status': result["info"][name]['state']
-            }
+            dict_result = {"name": name, "status": result["info"][name]["state"]}
 
         return dict_result
 
-    def _images(self):
-        """
-        internal method that returns a native multipass dict of the images.
+    def images(self, refresh=False, purge=False):
+        """Lists the images on the cloud
 
-        :return: dict of images in multipass format
+        Returns:
+            dict
         """
-        result = Shell.run("multipass find --format=json")
-        #
-        # TODO: relpace with json.loads
-        result = json.loads(result)
-        dict_result = {
-            'images': result['images']
-        }
+        if purge:
+            os.remove(self.image_cache)
+            return None
+        elif refresh or not os.path.exists(self.image_cache):
+            # get online
+            result = Shell.run("multipass find --format=json")
+            data = json.loads(result)["images"]
+            new_data = []
+            for key in data:
+                new_item = data[key]
+                new_item["cm.name"] = new_item["release"].replace(" ", "-").lower()
+                new_data.append(new_item)
+            with open(self.image_cache, "w") as f:
+                json.dump(new_data, f, indent=4)
+        else:
+            # get from cache
+            with open(self.image_cache) as f:
+                data = json.load(f)
+            new_data = data
 
-        return dict_result
-
-    def images(self, **kwargs):
-        """
-        Lists the images on the cloud
-
-        :return: dict
-        """
-        result = self._images()
-        return self.update_dict(result, kind="image")
+        return new_data
 
     def image(self, name=None):
-        """
-        Gets the image with a given name
+        """Gets the image with a given name
 
-        :param name: The name of the image
-        :return: the dict of the image
+        Args:
+            name: The name of the image
+
+        Returns:
+            the dict of the image
         """
         result = self._images()
         result = [result[name]]
         return self.update_dict(result, kind="image")
 
     def _vm(self):
-        """
-        internal method that returns the dict of all vms
+        """internal method that returns the dict of all vms
 
-        :return: dict of vms in multipass format
+        Returns:
+            dict of vms in multipass format
         """
         result = Shell.run("multipass list --format=json")
         #
         # TODO: relpace with json.loads
         #
         results = json.loads(result)
-        dict_results = {
-            'vms': results['list']
-        }
+        dict_results = {"vms": results["list"]}
 
         return dict_results
-    def vm(self, **kwargs):
-        """
-        Lists the vms on the cloud
 
-        :return: dict
+    def vm(self, **kwargs):
+        """Lists the vms on the cloud
+
+        Returns:
+            dict
         """
         result = self._vm()
         return self.update_dict(result, kind="vm")
 
     # IMPLEMENT
     def start(self, name=None):
-        """
-        start a node
+        """start a node
 
-        :param name: the unique node name
-        :return:  The dict representing the node
+        Args:
+            name: the unique node name
+
+        Returns:
+            The dict representing the node
         """
 
         banner(f"start {name}")
@@ -410,9 +455,8 @@ class Provider(ComputeNodeABC):
         dict_result = {}
         result = Shell.live(f"multipass start {name}")
 
-        if result['status'] > 0:
-            dict_result = {"name": name,
-                           "status": "Error when starting instance"}
+        if result["status"] > 0:
+            dict_result = {"name": name, "status": "Error when starting instance"}
         else:
             # Get the vm status.
             dict_result = self._get_vm_status(name)
@@ -421,12 +465,14 @@ class Provider(ComputeNodeABC):
 
     # IMPLEMENT
     def delete(self, name=None, purge=True):
-        """
-        Deletes the names instance
+        """Deletes the names instance
 
-        :param name: The name
-        :param purge: if set to tru also purges the instance
-        :return: the dict of the deleted vm
+        Args:
+            name: The name
+            purge: if set to tru also purges the instance
+
+        Returns:
+            the dict of the deleted vm
         """
 
         banner(f"delete {name}")
@@ -435,19 +481,25 @@ class Provider(ComputeNodeABC):
         if purge:
             # terminate and purge
             result = Shell.live(f"multipass delete {name} --purge")
-            if result['status'] > 0:
-                dict_result = {"name": name,
-                                "status": "Error when deleting/destroying instance"}
+            if result["status"] > 0:
+                dict_result = {
+                    "name": name,
+                    "status": "Error when deleting/destroying instance",
+                }
             else:
-                dict_result = {"name": name,
-                               "status": "Instance destroyed (deleted and purged)"}
+                dict_result = {
+                    "name": name,
+                    "status": "Instance destroyed (deleted and purged)",
+                }
 
         else:
             # terminate only
             result = Shell.live(f"multipass delete {name}")
-            if result['status'] > 0:
-                dict_result = {"name": name,
-                                "status": "Error when deleting/destroying instance"}
+            if result["status"] > 0:
+                dict_result = {
+                    "name": name,
+                    "status": "Error when deleting/destroying instance",
+                }
             else:
                 dict_result = {"name": name, "status": "Instance deleted"}
 
@@ -455,10 +507,10 @@ class Provider(ComputeNodeABC):
 
     # IMPLEMENT
     def list(self, **kwargs):
-        """
-        list all vm Instances
+        """list all vm Instances
 
-        :return: an array of dicts representing the nodes
+        Returns:
+            an array of dicts representing the nodes
         """
 
         # Already implemented by vm method
@@ -466,10 +518,10 @@ class Provider(ComputeNodeABC):
 
     # IMPLEMENT
     def shell(self, name="cloudmesh"):
-        """
-        log into the shell of instance
+        """log into the shell of instance
 
-        :return: an empty string
+        Returns:
+            an empty string
         """
         banner("shell")
 
@@ -479,13 +531,15 @@ class Provider(ComputeNodeABC):
 
     # IMPLEMENT, POSSIBLE BUG wilth live
     def run(self, name="cloudmesh", command=None, executor="buffer"):
-        """
-        executes a command in a named multipass instance
+        """executes a command in a named multipass instance
 
-        :param name: the name of the instance
-        :param command: the command
-        :param executor: one of live, buffer, os
-        :return: only returned when using live or buffer
+        Args:
+            name: the name of the instance
+            command: the command
+            executor: one of live, buffer, os
+
+        Returns:
+            only returned when using live or buffer
 
         live   = prints the output immediatly but also buffers it and returns
                  it at the end
@@ -508,19 +562,20 @@ class Provider(ComputeNodeABC):
             result = self.remove_spinner(result)
         elif executor == "os":
             os.system(f"multipass exec {name} -- {command}")
-            print('\n')
+            print("\n")
         else:
-            Console.error(
-                "run: executor must be cloudmesh or os, found: {executor}")
+            Console.error("run: executor must be cloudmesh or os, found: {executor}")
         return result
 
     # IMPLEMENT, new method
     def get(self, key=None):
-        """
-        returns the variable with the given key name from multipass
+        """returns the variable with the given key name from multipass
 
-        :param key: the key name
-        :return:
+        Args:
+            key: the key name
+
+        Returns:
+
         """
         result = ""
         if key is not None:
@@ -529,34 +584,36 @@ class Provider(ComputeNodeABC):
 
     # IMPLEMENT, new method
     def set(self, key=None, value=None):
-        """
-        sets the multipass variable with the kename to value
+        """sets the multipass variable with the kename to value
 
-        :param key: the name of the key
-        :param value: the value to be set
-        :return:
+        Args:
+            key: the name of the key
+            value: the value to be set
+
+        Returns:
+
         """
         result = ""
-        if (key is not None):
+        if key is not None:
             result = Shell.run(f"multipass set {key} {value}")
         return result
 
     # IMPLEMENT
     def stop(self, name=None):
-        """
-        stops the node with the given name
+        """stops the node with the given name
 
         :param name of the instance to stop
-        :return: The dict representing the node including updated status
+
+        Returns:
+            The dict representing the node including updated status
         """
         banner(f"stop {name}")
 
         dict_result = {}
         result = Shell.live(f"multipass stop {name}")
 
-        if result['status'] > 0:
-            dict_result = {"name": name,
-                           "status": "Error when stopping instance"}
+        if result["status"] > 0:
+            dict_result = {"name": name, "status": "Error when stopping instance"}
         else:
             # Get the vm status.
             dict_result = self._get_vm_status(name)
@@ -565,11 +622,13 @@ class Provider(ComputeNodeABC):
 
     # IMPLEMENT
     def info(self, name=None):
-        """
-        gets the information of a node with a given name
+        """gets the information of a node with a given name
 
-        :param name:
-        :return: The dict representing the node including updated status
+        Args:
+            name
+
+        Returns:
+            The dict representing the node including updated status
         """
 
         result = self._info()
@@ -578,11 +637,13 @@ class Provider(ComputeNodeABC):
 
     # IMPLEMENT
     def suspend(self, name=None):
-        """
-        suspends the node with the given name
+        """suspends the node with the given name
 
-        :param name: the name of the node
-        :return: The dict representing the node
+        Args:
+            name: the name of the node
+
+        Returns:
+            The dict representing the node
         """
         banner(f"suspend {name}")
         os.system(f"multipass suspend {name}")
@@ -594,11 +655,13 @@ class Provider(ComputeNodeABC):
 
     # IMPLEMENT
     def resume(self, name=None):
-        """
-        resume the named node
+        """resume the named node
 
-        :param name: the name of the node
-        :return: the dict of the node
+        Args:
+            name: the name of the node
+
+        Returns:
+            the dict of the node
         """
         banner(f"resume {name}")
         os.system(f"multipass start {name}")
@@ -609,10 +672,13 @@ class Provider(ComputeNodeABC):
 
     # IMPLEMENT
     def destroy(self, name=None):
-        """
-        Destroys the node
-        :param name: the name of the node
-        :return: the dict of the node
+        """Destroys the node
+
+        Args:
+            name: the name of the node
+
+        Returns:
+            the dict of the node
         """
         banner(f"destroy {name}")
 
@@ -621,31 +687,99 @@ class Provider(ComputeNodeABC):
     # IMPLEMENT
     # TODO: se the sample for defaults they are not idenitified
     #  from kwargs and passed along
-    def create(self,
-               name=None,
-               image=None,
-               size=None,
-               timeout=360,
-               group=None,
-               **kwargs):
-        """
-        creates a named node
 
-        :param group: a list of groups the vm belongs to
-        :param name: the name of the node
-        :param image: the image used
-        :param size: the size of the image
-        :param timeout: a timeout in seconds that is invoked in case the image
-                        does not boot.
-               The default is set to 3 minutes.
-        :param kwargs: additional arguments passed along at time of boot
-        :return:
+    def create(
+        self,
+        name: str = None,
+        image: str = None,
+        size: str = None,
+        timeout: int = 360,
+        group: str = None,
+        memory: str = None,
+        cpus: str = None,
+        disk: str = None,
+        cloud_init: str = None,
+        dryrun: bool = False,
+        cloudinit: str = None,
+        network: str = None,
+        bridged: bool = False,
+        mount: str = None,
+        **kwargs,
+    ):
         """
+        Create a resource with the given parameters.
+
+        Args:
+            name (str): The name of the resource.
+            image (str): The image to use for the resource.
+            size (str): The size of the resource.
+            timeout (int): The timeout duration in seconds (default is 360 seconds).
+            group (List[str]): A list of groups associated with the resource.
+            memory (str): The memory configuration for the resource.
+            cpus (str): The number of CPUs for the resource.
+            disk (str): The disk configuration for the resource.
+            cloud_init (str): The path to the cloud initialization file.
+            dryrun (bool): If True, perform a dry run without creating the resource.
+            cloudinit (str): The path or URL to the cloud initialization file.
+            network (str): The network configuration for the resource.
+            bridged (bool): If True, use bridged networking.
+            mount (str): The source path for mounting.
+            **kwargs (Any): Additional keyword arguments for customization.
+
+        Returns:
+            dict: A dictionary containing information about the created resource.
         """
-        create one node
-        """
+
+        # multipass create NAMES [--image=IMAGE]
+        #                    [--size=SIZE]
+        #                    [--memory=MEMORY]
+        #                    [--cpus=CPUS]
+        #                    [--disk=DISK]
+        #                    [--cloud-init=FILE]
+        #                    [--dryrun]
+        #                    [--cloudinit=FILE_OR_URL]
+        #                    [--network=NETWORK]
+        #                    [--bridged]
+        #                    [--mount=SOURCE]
+        #                    [--timeout=TIMEOUT]
+        #                    [--image=IMAGE]
 
         banner(f"create {name} using image {image}")
+
+        templates = self.config["cloudmesh.cloud.multipass.alias.vm"]
+
+        if name in templates:
+            image = templates[name]["image"]
+
+        defined_parameters = {
+            "name": name or "primary",
+            "image": image or "lts",
+            "timeout": timeout,
+            "group": group,
+            "memory": memory,
+            "cpus": cpus,
+            "disk": disk,
+            "cloud_init": cloud_init,
+            "dryrun": dryrun,
+            "cloudinit": cloudinit,
+            "network": network,
+            "bridged": bridged,
+            "mount": mount,
+        }
+
+        parameters = []
+        for key, value in defined_parameters.items():
+            if value is not None:
+                if type(value) is list and len(value) == 0:
+                    pass
+                else:
+                    parameter_string = f"--{key}={value}"
+                    parameters.append(parameter_string)
+
+        s = " ".join(parameters)
+        print(s)
+
+        return ""
 
         arguments = dotdict(kwargs)
         memory = arguments.memory
@@ -660,7 +794,7 @@ class Provider(ComputeNodeABC):
             command = command + f" --cpus {cpu}"
 
         if memory is not None:
-            command = command + f" --mem {memory}"
+            command = command + f" --memory {memory}"
 
         if size is not None:
             command = command + f" --disk {size}"
@@ -681,108 +815,123 @@ class Provider(ComputeNodeABC):
 
     # DO NOT IMPLEMENT
     def set_server_metadata(self, name, **metadata):
-        """
-        sets the metadata for the server
+        """sets the metadata for the server
 
-        :param name: name of the fm
-        :param metadata: the metadata
-        :return:
+        Args:
+            name: name of the fm
+            **metadata: the metadata
+
+        Returns:
+
         """
         raise NotImplementedError
 
     # DO NOT IMPLEMENT
     def get_server_metadata(self, name):
-        """
-        gets the metadata for the server
+        """gets the metadata for the server
 
-        :param name: name of the fm
-        :return:
+        Args:
+            name: name of the fm
+
+        Returns:
+
         """
         raise NotImplementedError
 
     # DO NOT IMPLEMENT
     def delete_server_metadata(self, name):
-        """
-        gets the metadata for the server
+        """gets the metadata for the server
 
-        :param name: name of the fm
-        :return:
+        Args:
+            name: name of the fm
+
+        Returns:
+
         """
         raise NotImplementedError
 
     # IMPLEMENT
     # TODO: pytest
     def rename(self, old_name=None, new_name=None):
-        """
-        rename a node
+        """rename a node
 
-        :param destination:
-        :param name: the current name
-        :return: the dict with the new name
+        Args:
+            destination
+            name: the current name
+
+        Returns:
+            the dict with the new name
         """
         result = Shell.run(f"multipass info {old_name} --format=json")
         result = json.load(result)
-        result['info'][new_name] = result['info'].pop(old_name)
-        dict_results = {
-            "info": {
-                result['info'][new_name]
-            }
-        }
+        result["info"][new_name] = result["info"].pop(old_name)
+        dict_results = {"info": {result["info"][new_name]}}
 
         return dict_results
 
     # DO NOT IMPLEMENT
     def keys(self):
-        """
-        Lists the keys on the cloud
+        """Lists the keys on the cloud
 
-        :return: dict
+        Returns:
+            dict
         """
         raise NotImplementedError
 
     # DO NOT IMPLEMENT
     def key_upload(self, key=None):
-        """
-        uploads the key specified in the yaml configuration to the cloud
-        :param key:
-        :return:
+        """uploads the key specified in the yaml configuration to the cloud
+
+        Args:
+            key
+
+        Returns:
+
         """
         raise NotImplementedError
 
     # DO NOT IMPLEMENT
     def key_delete(self, name=None):
-        """
-        deletes the key with the given name
-        :param name: The name of the key
-        :return:
+        """deletes the key with the given name
+
+        Args:
+            name: The name of the key
+
+        Returns:
+
         """
         raise NotImplementedError
 
     # DO NOT IMPLEMENT
     def flavors(self, **kwargs):
-        """
-        Lists the flavors on the cloud
+        """Lists the flavors on the cloud
 
-        :return: dict of flavors
+        Returns:
+            dict of flavors
         """
         raise NotImplementedError
 
     # DO NOT IMPLEMENT
     def flavor(self, name=None):
-        """
-        Gets the flavor with a given name
-        :param name: The name of the flavor
-        :return: The dict of the flavor
+        """Gets the flavor with a given name
+
+        Args:
+            name: The name of the flavor
+
+        Returns:
+            The dict of the flavor
         """
         raise NotImplementedError
 
     # IMPLEMENT, POSSIBLE BUG wilth live
     def reboot(self, name=None):
-        """
-        Reboot a list of nodes with the given names
+        """Reboot a list of nodes with the given names
 
-        :param name: name of instance to reboot
-        :return:  A list of dict representing the nodes
+        Args:
+            name: name of instance to reboot
+
+        Returns:
+            A list of dict representing the nodes
         """
 
         banner(f"reboot {name}")
@@ -796,92 +945,105 @@ class Provider(ComputeNodeABC):
 
     # DO NOT IMPLEMENT
     def attach_public_ip(self, name=None, ip=None):
-        """
-        adds a public ip to the named vm
+        """adds a public ip to the named vm
 
-        :param name: Name of the vm
-        :param ip: The ip address
-        :return:
+        Args:
+            name: Name of the vm
+            ip: The ip address
+
+        Returns:
+
         """
         raise NotImplementedError
 
     # DO NOT IMPLEMENT
     def detach_public_ip(self, name=None, ip=None):
-        """
-        adds a public ip to the named vm
+        """adds a public ip to the named vm
 
-        :param name: Name of the vm
-        :param ip: The ip address
-        :return:
+        Args:
+            name: Name of the vm
+            ip: The ip address
+
+        Returns:
+
         """
         raise NotImplementedError
 
     # DO NOT IMPLEMENT
     def delete_public_ip(self, ip=None):
-        """
-        Deletes the ip address
+        """Deletes the ip address
 
-        :param ip: the ip address, if None than all will be deleted
-        :return:
+        Args:
+            ip: the ip address, if None than all will be deleted
+
+        Returns:
+
         """
         raise NotImplementedError
 
     # DO NOT IMPLEMENT
     def list_public_ips(self, available=False):
-        """
-        Lists the public ip addresses.
+        """Lists the public ip addresses.
 
-        :param available: if True only those that are not allocated will be
-            returned.
+        Args:
+            available: if True only those that are not allocated will be
+                returned.
 
-        :return:
+        Returns:
+
         """
         raise NotImplementedError
 
     # DO NOT IMPLEMENT
     def create_public_ip(self):
-        """
-        Creates a new public IP address to use
+        """Creates a new public IP address to use
 
-        :return: The ip address information
+        Returns:
+            The ip address information
         """
         raise NotImplementedError
 
     # DO NOT IMPLEMENT
     def find_available_public_ip(self):
-        """
-        Returns a single public available ip address.
+        """Returns a single public available ip address.
 
-        :return: The ip
+        Returns:
+            The ip
         """
         raise NotImplementedError
 
     # DO NOT IMPLEMENT
     def get_public_ip(self, name=None):
-        """
-        returns the public ip
+        """returns the public ip
 
-        :param name: name of the server
-        :return:
+        Args:
+            name: name of the server
+
+        Returns:
+
         """
         raise NotImplementedError
 
     # DO NOT IMPLEMENT
     def list_secgroups(self, name=None):
-        """
-        List the named security group
+        """List the named security group
 
-        :param name: The name of the group, if None all will be returned
-        :return:
+        Args:
+            name: The name of the group, if None all will be returned
+
+        Returns:
+
         """
 
     # DO NOT IMPLEMENT
-    def list_secgroup_rules(self, name='default'):
-        """
-        List the named security group
+    def list_secgroup_rules(self, name="default"):
+        """List the named security group
 
-        :param name: The name of the group, if None all will be returned
-        :return:
+        Args:
+            name: The name of the group, if None all will be returned
+
+        Returns:
+
         """
         raise NotImplementedError
 
@@ -894,11 +1056,9 @@ class Provider(ComputeNodeABC):
         raise NotImplementedError
 
     # DO NOT IMPLEMENT
-    def add_secgroup_rule(self,
-                          name=None,  # group name
-                          port=None,
-                          protocol=None,
-                          ip_range=None):
+    def add_secgroup_rule(
+        self, name=None, port=None, protocol=None, ip_range=None  # group name
+    ):
         raise NotImplementedError
 
     # DO NOT IMPLEMENT
@@ -915,17 +1075,16 @@ class Provider(ComputeNodeABC):
 
     # IMPLEMENT, work with Gregor
     # see cloudmesh-openstack already implemented there
-    def wait(self,
-             vm=None,
-             interval=None,
-             timeout=None):
-        """
-        wais till the given VM can be logged into
+    def wait(self, vm=None, interval=None, timeout=None):
+        """wais till the given VM can be logged into
 
-        :param vm: name of the vm
-        :param interval: interval for checking
-        :param timeout: timeout
-        :return:
+        Args:
+            vm: name of the vm
+            interval: interval for checking
+            timeout: timeout
+
+        Returns:
+
         """
         # repeatedly tries run aof a knwpn command such as uname -a and
         # sees if it returns without error.
@@ -940,11 +1099,13 @@ class Provider(ComputeNodeABC):
 
     # DO NOT IMPLEMENT
     def console(self, vm=None):
-        """
-        gets the output from the console
+        """gets the output from the console
 
-        :param vm: name of the VM
-        :return:
+        Args:
+            vm: name of the VM
+
+        Returns:
+
         """
         raise NotImplementedError
         return ""
@@ -955,39 +1116,37 @@ class Provider(ComputeNodeABC):
         return ""
 
     def info(self, **kwargs):
-        """
-        Lists the info on the cloud
+        """Lists the info on the cloud
 
-        :return: dict
+        Returns:
+            dict
         """
         result = self._info()
         return self.update_dict(result, kind="info")
 
     def _info(self):
-        """
-        an internal method that returns the info of all instances as a dict in
+        """an internal method that returns the info of all instances as a dict in
         multipass
 
-        :return: dict of all instances in multipass
+        Returns:
+            dict of all instances in multipass
         """
         result = Shell.run("multipass info --all --format=json")
         #
         # TODO: relpace with json.loads
         #
-        result = eval(result)['info']
+        result = eval(result)["info"]
         return result
 
     # implement
     def mount(self, name="cloudmesh", source=None, destination=None):
-        """
-        mounts the sourse into the instance at the given destination
+        """mounts the sourse into the instance at the given destination
 
         TODO: proper docstring
         """
         result = ""
         if (source is not None) and (source is not None) and (name is not None):
-            result = Shell.run(
-                f"multipass mount --name={name} {source} {destination}")
+            result = Shell.run(f"multipass mount --name={name} {source} {destination}")
         else:
             Console.error("make sure to specify all attributes")
             return ""
@@ -996,22 +1155,18 @@ class Provider(ComputeNodeABC):
 
     # implement
     def umount(self, name="cloudmesh", path=None):
-        """
-        Unmount a directory from an instance.
+        """Unmount a directory from an instance.
 
         TODO: propper docstring
-        :return:
+
+        Returns:
+
         """
         raise NotImplementedError
 
     # implement
-    def transfer(self,
-                 name="cloudmesh",
-                 source=None,
-                 destination=None,
-                 recursive=True):
-        """
-        copies files or entire directories into the instance
+    def transfer(self, name="cloudmesh", source=None, destination=None, recursive=True):
+        """copies files or entire directories into the instance
 
         TODO: proper docstring
         """
@@ -1020,7 +1175,8 @@ class Provider(ComputeNodeABC):
         result = ""
         if None not in (source, name):
             result = Shell.run(
-                f"multipass transfer --name={name} {source} {destination}")
+                f"multipass transfer --name={name} {source} {destination}"
+            )
         else:
             Console.error("make sure to specify all attributes")
             return ""
@@ -1031,12 +1187,12 @@ class Provider(ComputeNodeABC):
 if __name__ == "__main__":
     # excellent-titmouse is multipass instance name
     p = Provider()  # name="cloudmesh"
-    #p.vm()
-    #p.start("testvm")
-    #p.stop("testvm")
-    #p.vm()
-    #p.run("uname -r")
-    #p.images()
-    #p.delete("testvm")
-    #p.vm()
-    #p.list()
+    # p.vm()
+    # p.start("testvm")
+    # p.stop("testvm")
+    # p.vm()
+    # p.run("uname -r")
+    # p.images()
+    # p.delete("testvm")
+    # p.vm()
+    # p.list()
