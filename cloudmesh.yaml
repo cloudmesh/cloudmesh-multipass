@@ -1,0 +1,32 @@
+cloudmesh:
+  cloud:
+    multipass:
+      cm:
+        active: true
+        heading: Multipass
+        host: localhost
+        label: multipass
+        kind: multipass
+      credentials:
+        auth:
+          key: ~/.ssh/id_rsa
+      alias:
+        vm:
+          default:
+            id: 22.04
+            name: 22-04-lts
+            cpus: 1
+            disk: 1GB
+            memory: 1GB
+          22-04-lts:
+            id: 22.04
+            name: 22-04-lts
+            cpus: 1
+            disk: 1GB
+            memory: 1GB
+          23.1:
+            id: 23.1
+            name: 23.1
+            cpus: 1
+            disk: 1GB
+            memory: 1GB
