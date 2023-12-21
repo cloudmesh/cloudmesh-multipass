@@ -4,9 +4,10 @@ from cloudmesh.common.Shell import Shell
 from cloudmesh.common.util import yn_choice
 import sys
 from cloudmesh.common.security import can_use_sudo
+from cloudmesh.common.systeminfo import os_is_linux, os_is_mac, os_is_windows
+
 
 class Deploy:
-
     def __init__(self, dryrun=False):
         self.dryrun = dryrun
         self.operating_system = sys.platform.lower()
@@ -14,19 +15,18 @@ class Deploy:
         os.makedirs(self.directory, exist_ok=True)
 
     def install(self):
-        if self.operating_system == "windows":
+        if os_is_windows():
             self._install_on_windows()
-        elif self.operating_system == "darwin":
+        elif os_is_mac():
             self._install_on_osx()
-        elif self.operating_system == "ubuntu":
+        elif os_is_linux():
             self._install_on_ubuntu()
         else:
-            # theer could be different
+            # there could be different
             # methods on different linux versions.
             raise NotImplementedError
 
     def _install_on_windows(self):
-
         raise NotImplementedError
 
         import ctypes
@@ -46,7 +46,6 @@ class Deploy:
             return ""
 
         # see https://multipass.run/docs/installing-on-windows
-
 
     def _install_on_osx(self):
         """
@@ -71,20 +70,19 @@ class Deploy:
         # install
         try:
             get_command = f"cd {self.directory} ; wget wget --content-disposition {url}"
-            open_commad = f"cd {self.directory} ; open {pkg}"
+            open_command = f"cd {self.directory} ; open {pkg}"
             if self.dryrun:
                 Console.ok("Dryrun:")
                 Console.ok("")
                 Console.ok(get_command)
-                Console.ok(open_commad)
+                Console.ok(open_command)
             else:
                 Shell.run(get_command)
-                os.system(open_commad)
+                os.system(open_command)
         except:
             Console.error("problem downloading multipass")
         # remove
-        if not self.dryrun and \
-            yn_choice("do you want to delete the downloaded file?"):
+        if not self.dryrun and yn_choice("do you want to delete the downloaded file?"):
             Shell.rm(self.directory)
 
     def _install_on_ubuntu(self):
@@ -98,10 +96,9 @@ class Deploy:
             return ""
 
         command = "sudo snap install multipass"
-        if not self.dryrun:
+        if self.dryrun:
             Console.ok("Dryrun:")
             Console.ok("")
             Console.ok(command)
             return ""
         os.system(command)
-        raise NotImplementedError
