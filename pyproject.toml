@@ -21,7 +21,7 @@ maintainers = [
 ]
 keywords = ["helper library", "cloudmesh"]
 classifiers = [
-    "Development Status :: 5 - Production/Stable",
+    "Development Status :: 1 - Planning",
     "Environment :: Console",
     "Environment :: Other Environment",
     "Environment :: Plugins",
@@ -57,8 +57,13 @@ dependencies = [
     "cloudmesh-inventory",
     "cloudmesh-configuration",
 ]
+
 [project.urls]
-"Documentation" = "https://github.com/cloudmesh/cloudmesh-common"
+Homepage = "https://github.com/cloudmesh/cloudmesh-multipass"
+Documentation = "https://github.com/cloudmesh/cloudmesh-multipass/blob/main/README.md"
+Repository = "https://github.com/cloudmesh/cloudmesh-multipass.git"
+Issues = "https://github.com/cloudmesh/cloudmesh-multipass/issues"
+Changelog = "https://github.com/cloudmesh/cloudmesh-multipass/blob/main/CHANGELOG.md"
 
 [tool.setuptools.packages.find]
 where = ["src/"]
