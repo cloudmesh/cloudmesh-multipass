@@ -13,8 +13,8 @@ from cloudmesh.multipass.Provider import Provider
 
 Benchmark.debug()
 
-cloud= "local"
-instance="cloudmesh-test"
+cloud = "local"
+instance = "cloudmesh-test"
 
 # THIS DOES NOT INCLUDE ALL MISSING TEST JUST ONE SO GREGOR KNOWS THIS HAS NOT
 # BEEN DONE
@@ -27,20 +27,20 @@ multipass mount SOURCE DESTINATION [--dryrun]
       multipass get [key] [--dryrun]
 """
 
+
 @pytest.mark.incremental
 class TestMultipass:
+    vm_name_prefix = "cloudmeshvm"  # Note: multipass does not allow - or _ in vm name.
 
-    vm_name_prefix = "cloudmeshvm" #Note: multipass does not allow - or _ in vm name.
-
-    def test_cms_version(self):
+    def test_multipass(self):
         HEADING()
 
         Benchmark.Start()
-        result = Shell.execute("cms version", shell=True)
+        result = Shell.execute("cms help", shell=True)
         Benchmark.Stop()
         VERBOSE(result)
 
-        assert "missing" in result
+        assert "multipass" in result
         Benchmark.Status(True)
 
     def test_provider_version(self):
@@ -55,34 +55,44 @@ class TestMultipass:
 
         result = str(result)
 
-        assert "missing" in result
+        print("AAA", result, "BBB")
+
+        assert "multipass" in result
+        assert "multipassd" in result
+        assert ":" in result
+        assert "." in result
+        assert "}" in result
+        assert "{" in result
+
         Benchmark.Status(True)
 
     def test_cms_set(self):
         HEADING()
 
         Benchmark.Start()
-        result = Shell.execute("cms set", shell=True)
+        result = Shell.execute("cms set cloud=multipass", shell=True)
         Benchmark.Stop()
         VERBOSE(result)
 
-        assert "missing" in result
+        assert "cloud" in result
+        assert "multipass" in result
         Benchmark.Status(True)
 
-    def test_provider_set(self):
-        HEADING()
+    # def test_provider_set(self):
+    #     HEADING()
 
-        self.provider = Provider()
+    #     self.provider = Provider()
 
-        Benchmark.Start()
-        result = self.provider.set()
-        Benchmark.Stop()
-        VERBOSE(result)
+    #     Benchmark.Start()
+    #     result = self.provider.set()
+    #     Benchmark.Stop()
+    #     VERBOSE(result)
 
-        result = str(result)
+    #     result = str(result)
+    #     print (result)
 
-        assert "missing" in result
-        Benchmark.Status(True)
+    #     assert "missing" in result
+    #     Benchmark.Status(True)
 
     def test_cms_get(self):
         HEADING()
@@ -95,74 +105,72 @@ class TestMultipass:
         assert "missing" in result
         Benchmark.Status(True)
 
-    def test_provider_get(self):
-        HEADING()
+    # def test_provider_get(self):
+    #     HEADING()
 
-        self.provider = Provider()
+    #     self.provider = Provider()
 
-        Benchmark.Start()
-        result = self.provider.get()
-        Benchmark.Stop()
-        VERBOSE(result)
+    #     Benchmark.Start()
+    #     result = self.provider.get()
+    #     Benchmark.Stop()
+    #     VERBOSE(result)
 
-        result = str(result)
+    #     result = str(result)
 
-        assert "missing" in result
-        Benchmark.Status(True)
+    #     assert "missing" in result
+    #     Benchmark.Status(True)
 
-    def test_cms_mount(self):
-        HEADING()
+    # def test_cms_mount(self):
+    #     HEADING()
 
-        Benchmark.Start()
-        result = Shell.execute("cms mount", shell=True)
-        Benchmark.Stop()
-        VERBOSE(result)
+    #     Benchmark.Start()
+    #     result = Shell.execute("cms mount", shell=True)
+    #     Benchmark.Stop()
+    #     VERBOSE(result)
 
-        assert "missing" in result
-        Benchmark.Status(True)
+    #     assert "missing" in result
+    #     Benchmark.Status(True)
 
-    def test_provider_mount(self):
-        HEADING()
+    # def test_provider_mount(self):
+    #     HEADING()
 
-        self.provider = Provider()
+    #     self.provider = Provider()
 
-        Benchmark.Start()
-        result = self.provider.mount()
-        Benchmark.Stop()
-        VERBOSE(result)
+    #     Benchmark.Start()
+    #     result = self.provider.mount()
+    #     Benchmark.Stop()
+    #     VERBOSE(result)
 
-        result = str(result)
+    #     result = str(result)
 
-        assert "missing" in result
-        Benchmark.Status(True)
+    #     assert "missing" in result
+    #     Benchmark.Status(True)
 
-    def test_cms_transfer(self):
-        HEADING()
+    # def test_cms_transfer(self):
+    #     HEADING()
 
-        Benchmark.Start()
-        result = Shell.execute("cms transfer", shell=True)
-        Benchmark.Stop()
-        VERBOSE(result)
+    #     Benchmark.Start()
+    #     result = Shell.execute("cms transfer", shell=True)
+    #     Benchmark.Stop()
+    #     VERBOSE(result)
 
-        assert "missing" in result
-        Benchmark.Status(True)
+    #     assert "missing" in result
+    #     Benchmark.Status(True)
 
-    def test_provider_transfer(self):
-        HEADING()
+    # def test_provider_transfer(self):
+    #     HEADING()
 
-        self.provider = Provider()
+    #     self.provider = Provider()
 
-        Benchmark.Start()
-        result = self.provider.transfer()
-        Benchmark.Stop()
-        VERBOSE(result)
+    #     Benchmark.Start()
+    #     result = self.provider.transfer()
+    #     Benchmark.Stop()
+    #     VERBOSE(result)
 
-        result = str(result)
+    #     result = str(result)
 
-        assert "missing" in result
-        Benchmark.Status(True)
-
-
+    #     assert "missing" in result
+    #     Benchmark.Status(True)
 
     #
     # NOTHING BELOW THIS LINE

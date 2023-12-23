@@ -3,8 +3,8 @@ from cloudmesh.common.debug import VERBOSE
 from cloudmesh.common.parameter import Parameter
 from cloudmesh.common.util import banner
 from cloudmesh.common.variables import Variables
-from cloudmesh.multipass.Provider import Provider
-from cloudmesh.multipass.Deploy import Deploy
+from cloudmesh.multipass.Provider import Provider as multipassProvider
+from cloudmesh.multipass.Deploy import Deploy as multipassDeploy
 from cloudmesh.shell.command import PluginCommand
 from cloudmesh.shell.command import command
 from cloudmesh.shell.command import map_parameters
@@ -12,7 +12,6 @@ from cloudmesh.common.Printer import Printer
 
 
 class MultipassCommand(PluginCommand):
-
     # noinspection PyUnusedLocal
     @command
     def do_multipass(self, args, arguments):
@@ -21,14 +20,19 @@ class MultipassCommand(PluginCommand):
 
           Usage:
                 multipass deploy [--dryrun]
+                multipass images [--output=OUTPUT] [--refresh] [--purge] [--dryrun]
                 multipass list [--output=OUTPUT] [--dryrun]
-                multipass images [--output=OUTPUT] [--dryrun]
                 multipass create NAMES [--image=IMAGE]
                                        [--size=SIZE]
-                                       [--mem=MEMORY]
+                                       [--memory=MEMORY]
                                        [--cpus=CPUS]
-                                       [--cloud-init=FILE]
+                                       [--disk=DISK]
                                        [--dryrun]
+                                       [--cloudinit=FILE_OR_URL]
+                                       [--network=NETWORK]
+                                       [--bridged]
+                                       [--mount=SOURCE]
+                                       [--timeout=TIMEOUT]
                 multipass delete NAMES [--output=OUTPUT][--dryrun]
                 multipass destroy NAMES [--output=OUTPUT][--dryrun]
                 multipass shell NAMES [--dryrun]
@@ -46,6 +50,8 @@ class MultipassCommand(PluginCommand):
                 multipass get [key] [--dryrun]
                 multipass deploy [--dryrun]
                 multipass rename NAMES [--dryrun]
+                multipass test
+                multipass vm defaults [--output=OUTPUT]
                 multipass version
 
           Interface to multipass
@@ -67,7 +73,7 @@ class MultipassCommand(PluginCommand):
                                   integers, in bytes, or with K, M, G suffix.
                                   Minimum: 128M, default: 1G.
 
-               --cloud-init=FILE  Path to a user-data cloud-init configuration
+               --cloudinit=FILE  Path to a user-data cloudinit configuration
 
           Arguments:
               NAMES   the names of the virtual machine
@@ -108,7 +114,7 @@ class MultipassCommand(PluginCommand):
               cms multipass get KEY
 
               Known keys
-       
+
                   client.gui.autostart
                   client.primary-name
                   local.driver
@@ -135,37 +141,47 @@ class MultipassCommand(PluginCommand):
         """
         name = arguments.NAME
 
-        map_parameters(arguments,
-                       "dryrun",
-                       "refresh",
-                       "cloud",
-                       "image",
-                       "size",
-                       "mem",
-                       "cpus",
-                       "cloud-init",
-                       "output")
-        # so we can use arguments.cloudinit
-        arguments["cloudinit"] = arguments["--cloud-init"]
+        map_parameters(
+            arguments,
+            "dryrun",
+            "purge",
+            "refresh",
+            "cloud",
+            "image",
+            "size",
+            "memory",
+            "disk",
+            "cpus",
+            "cloudinit", "network", "bridged", "timeout",
+            "output"
+        )
 
         image = arguments.image
         variables = Variables()
 
-        arguments.output = Parameter.find("output",
-                                          arguments,
-                                          variables,
-                                          "table")
+        arguments.output = Parameter.find("output", arguments, variables, "table")
 
         names = Parameter.expand(arguments.NAMES)
 
         VERBOSE(arguments)
 
-        if arguments.version:
+        if arguments["test"]:
+            print ("test")
+            provider = multipassProvider()
+            provider.test()
 
+        elif arguments.vm and arguments.defaults:
+
+            print ("defaults")
+            arguments.output = arguments.output or "table"
+            provider = multipassProvider()
+            provider.defaults(output=arguments.output)
+
+        elif arguments.version:
             if arguments.dryrun:
                 banner("dryrun list")
             else:
-                provider = Provider()
+                provider = multipassProvider()
                 version = provider.version()
                 del version["name"]
 
@@ -174,36 +190,34 @@ class MultipassCommand(PluginCommand):
             return ""
 
         elif arguments.list:
-
             if arguments.dryrun:
                 banner("dryrun list")
             else:
-                provider = Provider()
-                list = provider.list()
+                provider = multipassProvider()
+                vm_list = provider.list()
 
-                print(provider.Print(list,
-                                     kind='image',
-                                     output=arguments.output))
+                print(provider.Print(vm_list, kind="image", output=arguments.output))
 
             return ""
 
         elif arguments.images:
 
+            provider = multipassProvider()
+
             if arguments.dryrun:
                 banner("dryrun images")
+            elif arguments.purge:
+                image_list = provider.images(purge=arguments.purge)
             else:
+                image_list = provider.images(
+                    refresh=arguments.refresh, purge=arguments.purge
+                )
 
-                provider = Provider()
-                images = provider.images()
-
-                print(provider.Print(images,
-                                     kind='image',
-                                     output=arguments.output))
+                print(provider.Print(image_list, kind="image", output=arguments.output))
 
             return ""
 
         elif arguments.run:
-
             if arguments.dryrun:
                 banner("dryrun run")
 
@@ -211,43 +225,35 @@ class MultipassCommand(PluginCommand):
                 if arguments.dryrun:
                     Console.ok(f"run {name} {arguments.COMMAND}")
                 else:
-
-                    provider = Provider()
+                    provider = multipassProvider()
                     provider.run(name, arguments.COMMAND)
 
             return ""
 
         elif arguments.create:
-
             result = ""
 
             if arguments.dryrun:
                 banner("create")
 
-            timeout = 360
-            group = None
-            kwargs = {
-                "cloud_init": arguments.cloud_init,
-                "cpus": arguments.cpus, "memory": arguments.mem
-            }
 
+            P = ["image", "size", "memory", "cpus", "disk", "cloudinit", "dryrun", "network", "bridged", "mount", "timeout"]
+            found = {k: arguments[k] for k in P if arguments[k] is not None and arguments[k] != False}                
+            names = Parameter.expand(names)
+            
             for name in names:
                 if arguments.dryrun:
-                    Console.ok(f"dryrun create {name} {image}")
+                    Console.ok(f"dryrun create {name} {found}")
                 else:
-                    provider = Provider()
-                    result = provider.create(name,
-                                             image,
-                                             arguments.size,
-                                             timeout,
-                                             group,
-                                             **kwargs)
+                    provider = multipassProvider()
+            
+                    result = provider.create(name, **found)
                     VERBOSE(result)
 
-            return result
+            # return result
+            return ""
 
         elif arguments.start:
-
             result = ""
 
             if arguments.dryrun:
@@ -257,14 +263,13 @@ class MultipassCommand(PluginCommand):
                 if arguments.dryrun:
                     Console.ok(f"dryrun start {name}")
                 else:
-                    provider = Provider()
+                    provider = multipassProvider()
                     result = provider.start(name)
                     VERBOSE(result)
 
             return result
 
         elif arguments.stop:
-
             result = ""
 
             if arguments.dryrun:
@@ -274,16 +279,15 @@ class MultipassCommand(PluginCommand):
                 if arguments.dryrun:
                     Console.ok(f"dryrun stop {name}")
                 else:
-                    provider = Provider(name=name)
+                    provider = multipassProvider(name=name)
                     result = provider.stop(name)
                     VERBOSE(result)
 
             return result
 
         elif arguments.delete:
-
             result = ""
-
+            
             if arguments.dryrun:
                 banner("delete")
 
@@ -291,7 +295,7 @@ class MultipassCommand(PluginCommand):
                 if arguments.dryrun:
                     Console.ok(f"dryrun delete {name}")
                 else:
-                    provider = Provider()
+                    provider = multipassProvider()
                     # Default purge is false. Is this ok?
                     result = provider.delete(name)
                     VERBOSE(result)
@@ -299,7 +303,6 @@ class MultipassCommand(PluginCommand):
             return result
 
         elif arguments.info:
-
             result = ""
 
             if arguments.dryrun:
@@ -309,7 +312,7 @@ class MultipassCommand(PluginCommand):
                 if arguments.dryrun:
                     Console.ok(f"dryrun info {name}")
                 else:
-                    provider = Provider()
+                    provider = multipassProvider()
                     # Default purge is false. Is this ok?
                     result = provider.info(name)
                     VERBOSE(result)
@@ -317,29 +320,26 @@ class MultipassCommand(PluginCommand):
             return result
 
         elif arguments.rename:
-
             result = ""
 
             if arguments.dryrun:
-                banner(f"Current Name: {names[0]}"
-                       f"New Name: {names[1]}")
+                banner(f"Current Name: {names[0]}" f"New Name: {names[1]}")
 
             if names.len() > 2:
-                Console.error("You have entered too many names."
-                              "Only enter TWO names at a time.")
+                Console.error(
+                    "You have entered too many names." "Only enter TWO names at a time."
+                )
             else:
                 old_name = names[0]
                 new_name = names[1]
 
-                provider = Provider()
+                provider = multipassProvider()
                 result = provider.rename(old_name, new_name)
                 VERBOSE(result)
 
             return result
 
-
         elif arguments.suspend:
-
             result = ""
 
             if arguments.dryrun:
@@ -349,14 +349,13 @@ class MultipassCommand(PluginCommand):
                 if arguments.dryrun:
                     Console.ok(f"dryrun suspend {name}")
                 else:
-                    provider = Provider()
+                    provider = multipassProvider()
                     result = provider.suspend(name)
                     VERBOSE(result)
 
             return result
 
         elif arguments.resume:
-
             result = ""
 
             if arguments.dryrun:
@@ -366,14 +365,13 @@ class MultipassCommand(PluginCommand):
                 if arguments.dryrun:
                     Console.ok(f"dryrun resume {name}")
                 else:
-                    provider = Provider()
+                    provider = multipassProvider()
                     result = provider.resume(name)
                     VERBOSE(result)
 
             return result
 
         elif arguments.destroy:
-
             result = ""
 
             if arguments.dryrun:
@@ -383,14 +381,13 @@ class MultipassCommand(PluginCommand):
                 if arguments.dryrun:
                     Console.ok(f"dryrun destroy {name}")
                 else:
-                    provider = Provider()
+                    provider = multipassProvider()
                     result = provider.destroy(name)
                     VERBOSE(result)
 
             return result
 
         elif arguments.reboot:
-
             result = ""
 
             if arguments.dryrun:
@@ -400,14 +397,13 @@ class MultipassCommand(PluginCommand):
                 if arguments.dryrun:
                     Console.ok(f"dryrun reboot {name}")
                 else:
-                    provider = Provider()
+                    provider = multipassProvider()
                     result = provider.reboot(name)
                     VERBOSE(result)
 
             return result
 
         elif arguments.shell:
-
             if len(names) > 1:
                 Console.error("shell must only have one host")
                 return ""
@@ -417,32 +413,26 @@ class MultipassCommand(PluginCommand):
             if arguments.dryrun:
                 banner("dryrun shell {name}")
             else:
-                provider = Provider()
+                provider = multipassProvider()
                 provider.shell()
 
             return ""
 
         elif arguments.info:
-
             if arguments.dryrun:
                 banner("dryrun info")
             else:
-                provider = Provider()
+                provider = multipassProvider()
                 info = provider.info()
-                print(
-                    provider.Print(info,
-                                   kind='info',
-                                   output=arguments.output))
+                print(provider.Print(info, kind="info", output=arguments.output))
 
             return ""
 
         elif arguments.mount:
-
             if arguments.dryrun:
-                banner(
-                    f"dryrun mount {arguments.SOURCE} {arguments.DESTINATION}")
+                banner(f"dryrun mount {arguments.SOURCE} {arguments.DESTINATION}")
             else:
-                provider = Provider()
+                provider = multipassProvider()
                 provider.mount(arguments.SOURCE, arguments.DESTINATION)
 
                 # list the mounts and display as table
@@ -450,9 +440,8 @@ class MultipassCommand(PluginCommand):
             return ""
 
         elif arguments.deploy:
-            provider = Deploy(dryrun=arguments.dryrun)
+            provider = multipassDeploy(dryrun=arguments.dryrun)
             provider.install()
-
 
         else:
             Console.error("Not yet implemented")

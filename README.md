@@ -34,7 +34,6 @@ cms multipass deploy
 ## Manual page
 
 ```
-
   Usage:
         multipass deploy [--dryrun]
         multipass list [--output=OUTPUT] [--dryrun]
