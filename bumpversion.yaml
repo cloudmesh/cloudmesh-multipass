@@ -1,5 +1,4 @@
 multipass:
 - src/cloudmesh/multipass/__init__.py
-- src/cloudmesh/multipass/__version__.py
 - pyproject.toml
 - VERSION
