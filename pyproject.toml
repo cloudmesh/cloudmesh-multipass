@@ -8,7 +8,7 @@ requires = [
 
 [project]
 name = "cloudmesh-multipass"
-version = "5.0.17"
+version = "5.0.0"
 description = "A cloudmesh command to manage virtual machines through multipass"
 readme = "README.md"
 requires-python = ">=3.8"
