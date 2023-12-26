@@ -66,5 +66,5 @@ Issues = "https://github.com/cloudmesh/cloudmesh-multipass/issues"
 Changelog = "https://github.com/cloudmesh/cloudmesh-multipass/blob/main/CHANGELOG.md"
 
 [tool.setuptools.packages.find]
-where = ["src/"]
+where = ["src"]
 include = ["cloudmesh.multipass", "cloudmesh.multipass.*"]
