@@ -31,19 +31,32 @@ cms help multipass
 cms multipass deploy
 * Ubuntu 22.04, Dec 2023Command multipass
 
-## Manual page
 
+
+## Manual Page
+
+<!-- START-MANUAL -->
 ```
+Command multipass
+=================
+
+::
+
   Usage:
         multipass deploy [--dryrun]
+        multipass images [--output=OUTPUT] [--refresh] [--purge] [--dryrun]
         multipass list [--output=OUTPUT] [--dryrun]
-        multipass images [--output=OUTPUT] [--dryrun]
         multipass create NAMES [--image=IMAGE]
                                [--size=SIZE]
-                               [--mem=MEMORY]
+                               [--memory=MEMORY]
                                [--cpus=CPUS]
-                               [--cloud-init=FILE]
+                               [--disk=DISK]
                                [--dryrun]
+                               [--cloudinit=FILE_OR_URL]
+                               [--network=NETWORK]
+                               [--bridged]
+                               [--mount=SOURCE]
+                               [--timeout=TIMEOUT]
         multipass delete NAMES [--output=OUTPUT][--dryrun]
         multipass destroy NAMES [--output=OUTPUT][--dryrun]
         multipass shell NAMES [--dryrun]
@@ -61,6 +74,8 @@ cms multipass deploy
         multipass get [key] [--dryrun]
         multipass deploy [--dryrun]
         multipass rename NAMES [--dryrun]
+        multipass test
+        multipass vm defaults [--output=OUTPUT]
         multipass version
 
   Interface to multipass
@@ -82,7 +97,7 @@ cms multipass deploy
                           integers, in bytes, or with K, M, G suffix.
                           Minimum: 128M, default: 1G.
 
-       --cloud-init=FILE  Path to a user-data cloud-init configuration
+       --cloudinit=FILE  Path to a user-data cloudinit configuration
 
   Arguments:
       NAMES   the names of the virtual machine
@@ -147,5 +162,5 @@ cms multipass deploy
 
     WHEN YOU IMPLEMENT A FUNCTION INCLUDE MINIMAL
       DOCUMENTATION HERE
-
 ```
+<!-- STOP-MANUAL -->
